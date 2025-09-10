@@ -26,4 +26,12 @@ module reg_rst #(
      * student below...
      */
 
+    always_ff @(posedge clk) begin
+        if (rst) begin
+            out_o <= '0;
+        end else begin
+            out_o <= in_i;
+        end
+    end
+
 endmodule: reg_rst
