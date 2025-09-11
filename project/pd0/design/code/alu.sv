@@ -32,7 +32,7 @@ module alu #(
    
     //Case statement for alu opcodes
     always_comb begin :opselect
-        case(sel_i):
+        case(sel_i)
             ADD:        res_o = op1_i + op2_i;
             SUB:        res_o = op1_i - op2_i;
             AND:        res_o = op1_i & op2_i;
@@ -44,14 +44,14 @@ module alu #(
     //Flags for negative and zero results. 
     always_comb begin : flagassert
         if(res_o == 'b0)begin
-            zero_o == 1'b1;
+            zero_o = 1'b1;
         end
         else if (res_o[DWIDTH-1]) begin
-            neg_o == 1'b1;
+            neg_o = 1'b1;
         end
         else begin
-            neg_o == '0;
-            zero_o == '0;
+            neg_o = '0;
+            zero_o = '0;
         end
 
     end

@@ -23,6 +23,13 @@ module pd0 #(
  logic assign_xor_op1;
  logic assign_xor_op2;
  logic assign_xor_res;
+ 
+ logic [DWIDTH-1:0] assign_ALU_op1, assign_ALU_op2, assign_ALU_res;
+ logic [1:0] assign_ALU_sel;
+
+ logic [DWIDTH-1:0] assign_reg_in, assign_reg_out;
+
+ logic [DWIDTH-1:0] assign_TSP_op1, assign_TSP_op2, assign_TSP_res;
 
  assign_xor assign_xor_0 (
      .op1_i (assign_xor_op1),
@@ -35,5 +42,28 @@ module pd0 #(
   * probes. To be filled by student...
   *
   */
+  three_stage_pipeline pipeline(
+    .clk(clk),
+    .rst(rst),
+    .op1_i(assign_TSP_op1),
+    .op2_i(assign_TSP_op2),
+    .res_o(assign_TSP_res)
+  );
+
+  alu the_alu(
+    .zero_o(),
+    .neg_o(),
+    .sel_i(assign_ALU_sel),
+    .op1_i(assign_ALU_op1),
+    .op2_i(assign_ALU_op2),
+    .res_o(assign_ALU_res)
+  );
+
+  reg_rst register (
+    .in_i(assign_reg_in),
+    .out_o(assign_reg_out)
+  );
+
+  
 
 endmodule: pd0
