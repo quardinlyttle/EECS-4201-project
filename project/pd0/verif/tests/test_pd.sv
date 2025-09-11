@@ -84,9 +84,9 @@ module top;
  logic [31:0] alu_op2;
  logic [31:0] alu_res;
  always_comb begin: alu_input
-      dut.core.`ALU_SEL  = counter[1:0];
-      dut.core.`ALU_OP1  = counter[31:0];
-      dut.core.`ALU_OP2  = {counter[2], counter[3], counter[0], counter[1], counter[31:4]};
+      dut.core.`PROBE_ALU_SEL  = counter[1:0];
+      dut.core.`PROBE_ALU_OP1  = counter[31:0];
+      dut.core.`PROBE_ALU_OP2  = {counter[2], counter[3], counter[0], counter[1], counter[31:4]};
   end
   always_ff @(posedge clock) begin: alu_test
       if (reset_done) begin
@@ -112,13 +112,13 @@ module top;
   logic [31:0] reg_rst_out;
 
   always_comb begin: reg_rst_input
-      dut.core.`PROBE_REG_INP = counter[31:0];
+      dut.core.`PROBE_REG_IN = counter[31:0];
   end
   always_ff @(posedge clock) begin: reg_rst_test
       if (reset_done) begin
         $display("[REG] inp=%b, out=%b", reg_rst_inp, reg_rst_out);
       end
-      reg_rst_inp <= dut.core.`PROBE_REG_INP;
+      reg_rst_inp <= dut.core.`PROBE_REG_IN;
       reg_rst_out <= dut.core.`PROBE_REG_OUT;
   end
   `else
