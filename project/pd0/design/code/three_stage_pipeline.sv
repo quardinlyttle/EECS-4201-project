@@ -68,7 +68,7 @@ parameter int DWIDTH = 8)(
     //Final pipeline
     reg_rst #(.DWIDTH(DWIDTH)) out_(.clk(clk), .rst(rst), .in_i(stage3_in_1), .out_o(stage3_out_1));
 
-    assign reg_o = stage3_out_1;
+    assign res_o = stage3_out_1;
 
 
 
