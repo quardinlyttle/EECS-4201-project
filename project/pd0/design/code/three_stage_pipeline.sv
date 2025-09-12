@@ -49,25 +49,24 @@ parameter int DWIDTH = 8)(
 
     //First Stage
     //Remember, op1_i is then used again in the second stage. You need to pass it on.
-    reg_rst pipe1_1 (.clk(clk), .rst(rst), .in_i(op1_i),.out_o(stage1_1));
-    reg_rst pipe1_2 (.clk(clk),
-                    .rst(rst), .in_i(op2_i), .out_o(stage1_2));
-    reg_rst pipe1_3 (.clk(clk), .rst(rst), .in_i(op1_i), .out_o(stage2_in_1));
+    reg_rst #(.DWIDTH(DWIDTH)) pipe1_1 (.clk(clk), .rst(rst), .in_i(op1_i),.out_o(stage1_1));
+    reg_rst #(.DWIDTH(DWIDTH)) pipe1_2 (.clk(clk), .rst(rst), .in_i(op2_i), .out_o(stage1_2));
+    reg_rst #(.DWIDTH(DWIDTH)) pipe1_3 (.clk(clk), .rst(rst), .in_i(op1_i), .out_o(stage2_in_1));
 
     //As the input goes into the first registers, after the clock its passed into the alu (which is comibinational!)
-    alu adder (.sel_i(2'b00), .op1_i(stage1_1), .op2_i(stage1_2), .res_o(stage2_in_2), .zero_o(), .neg_o());
+    alu #(.DWIDTH(DWIDTH)) adder (.sel_i(2'b00), .op1_i(stage1_1), .op2_i(stage1_2), .res_o(stage2_in_2), .zero_o(), .neg_o());
 
     //Second Stage
     //stage2_in_1 is the op1_i from earlier
-    reg_rst pipe2_1 (.clk(clk), .rst(rst), .in_i(stage2_in_1), .out_o(stage2_out_1));
+    reg_rst #(.DWIDTH(DWIDTH)) pipe2_1 (.clk(clk), .rst(rst), .in_i(stage2_in_1), .out_o(stage2_out_1));
     //stage2_in2 is the output from the adder.
-    reg_rst pipe2_2 (.clk(clk), .rst(rst), .in_i(stage2_in_2), .out_o(stage2_out_2));
+    reg_rst #(.DWIDTH(DWIDTH)) pipe2_2 (.clk(clk), .rst(rst), .in_i(stage2_in_2), .out_o(stage2_out_2));
     
     //Remember, the operation is SUM-op1_i, so the output from the first stage subtracts the first input from the summed output.
-    alu subtract (.sel_i(2'b01), .op1_i(stage2_out_2), .op2_i(stage2_out_1),.res_o(stage3_in_1),.zero_o(), .neg_o());
+    alu #(.DWIDTH(DWIDTH)) subtract (.sel_i(2'b01), .op1_i(stage2_out_2), .op2_i(stage2_out_1),.res_o(stage3_in_1),.zero_o(), .neg_o());
 
     //Final pipeline
-    reg_rst out_(.clk(clk), .rst(rst), .in_i(stage3_in_1), .out_o(stage3_out_1));
+    reg_rst #(.DWIDTH(DWIDTH)) out_(.clk(clk), .rst(rst), .in_i(stage3_in_1), .out_o(stage3_out_1));
 
     assign reg_o = stage3_out_1;
 

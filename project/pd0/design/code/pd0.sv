@@ -42,7 +42,9 @@ module pd0 #(
   * probes. To be filled by student...
   *
   */
-  three_stage_pipeline pipeline(
+  three_stage_pipeline #(
+    .DWIDTH(DWIDTH)
+  ) pipeline (
     .clk(clk),
     .rst(rst),
     .op1_i(assign_TSP_op1),
@@ -50,7 +52,9 @@ module pd0 #(
     .res_o(assign_TSP_res)
   );
 
-  alu the_alu(
+  alu #(
+    .DWIDTH(DWIDTH)
+  ) the_alu (
     .zero_o(),
     .neg_o(),
     .sel_i(assign_ALU_sel),
@@ -59,7 +63,11 @@ module pd0 #(
     .res_o(assign_ALU_res)
   );
 
-  reg_rst register (
+  reg_rst #(
+    .DWIDTH(DWIDTH)
+  ) register (
+    .clk(clk),
+    .rst(rst),
     .in_i(assign_reg_in),
     .out_o(assign_reg_out)
   );
