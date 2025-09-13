@@ -23,9 +23,10 @@ module pd0 #(
  logic assign_xor_op1;
  logic assign_xor_op2;
  logic assign_xor_res;
- 
+
  logic [DWIDTH-1:0] assign_ALU_op1, assign_ALU_op2, assign_ALU_res;
  logic [1:0] assign_ALU_sel;
+ logic assign_ALU_nflag, assign_ALU_zflag;
 
  logic [DWIDTH-1:0] assign_reg_in, assign_reg_out;
 
@@ -55,8 +56,8 @@ module pd0 #(
   alu #(
     .DWIDTH(DWIDTH)
   ) the_alu (
-    .zero_o(),
-    .neg_o(),
+    .zero_o(assign_ALU_zflag),
+    .neg_o(assign_ALU_nflag),
     .sel_i(assign_ALU_sel),
     .op1_i(assign_ALU_op1),
     .op2_i(assign_ALU_op2),

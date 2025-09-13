@@ -8,6 +8,8 @@
 `define PROBE_ALU_OP2 assign_ALU_op2
 `define PROBE_ALU_RES assign_ALU_res
 `define PROBE_ALU_SEL assign_ALU_sel
+`define PROBE_ALU_NFLAG assign_ALU_nflag
+`define PROBE_ALU_ZFLAG assign_ALU_zflag
 
 `define PROBE_REG_IN  assign_reg_in
 `define PROBE_REG_OUT assign_reg_out
