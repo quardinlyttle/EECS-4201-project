@@ -299,13 +299,13 @@ module top1;
   logic [31:0] tsp_op1;
   logic [31:0] tsp_op2;
   logic [31:0] tsp_out;
-  logic [31:0] increase = 35;
+  logic [31:0] increase = 35; //Fixed value based on operation, OP2 is always the result. 
   
   always_comb begin: tsp_input
       dut.core.`PROBE_TSP_OP1 = counter[31:0];
       dut.core.`PROBE_TSP_OP2 = increase;
   end
-  
+  //Pipeline is 2 cycls deep so we will see the result after 3 clock cycles. Need to account for that. 
   logic [1:0]clkcounter =0;
   always_ff @(posedge clock) begin : pipeline_skip
     if(clkcounter == 3) begin
