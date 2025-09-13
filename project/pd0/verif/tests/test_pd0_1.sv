@@ -57,7 +57,7 @@ module top1;
 
 `ifdef PROBE_ALU_OP1 `ifdef PROBE_ALU_OP2 `ifdef PROBE_ALU_SEL `ifdef PROBE_ALU_RES `ifdef PROBE_ALU_NFLAG `ifdef PROBE_ALU_ZFLAG
     `define PROBE_ALU_OK
-`endif  `endif `endif `endif
+`endif  `endif `endif `endif `endif `endif 
 `ifdef PROBE_ALU_OK
  // alu
  logic [1:0] alu_sel;
@@ -76,63 +76,64 @@ module top1;
             dut.core.`PROBE_ALU_OP1  = 'b0;
             dut.core.`PROBE_ALU_OP2  = 'b0;
             if (alu_res != 'd0 && alu_zflag)
-                $display("[PD0] ADD Error: 1");
+                $error("[PD0] ADD Error: 1");
         end
         'd2 : begin // Add Case 6: Positive ADD Case
             dut.core.`PROBE_ALU_SEL  = 2'b00;
             dut.core.`PROBE_ALU_OP1  = 'd5;
             dut.core.`PROBE_ALU_OP2  = 'd3;
             if (alu_res != 'd8)
-                $display("[PD0] ADD Error: 2");
+                $error("[PD0] ADD Error: 2");
         end
         'd3 : begin // Add Case 6: Negative ADD Case
             dut.core.`PROBE_ALU_SEL  = 2'b00;
             dut.core.`PROBE_ALU_OP1  = -32'd5;
             dut.core.`PROBE_ALU_OP2  = -32'd3;
             if (alu_res != -32'd8 && alu_nflag)
-                $display("[PD0] ADD Error: 3");
+                $error("[PD0] ADD Error: 3");
         end
         'd4 : begin // Add Case 6: Mixed ADD Case
             dut.core.`PROBE_ALU_SEL  = 2'b00;
             dut.core.`PROBE_ALU_OP1  = 'd5;
-            dut.core.`PROBE_ALU_OP2  = -32'd3;
+            dut.core.`PROBE_ALU_OP2  =  -32'sd3;
+            $display("FIND ME ERROR 4");
             if (alu_res != 'd2)
-                $display("[PD0] ADD Error: 4");
+                $error("[PD0] ADD Error: 4");
         end
         'd5 : begin // Add Case 6: Mixed ADD Case
             dut.core.`PROBE_ALU_SEL  = 2'b00;
             dut.core.`PROBE_ALU_OP1  = -32'd5;
             dut.core.`PROBE_ALU_OP2  = 32'd3;
             if (alu_res != -32'd2 && alu_nflag)
-                $display("[PD0] ADD Error: 5");
+                $error("[PD0] ADD Error: 5");
         end
         'd6 : begin // Add Case 6: Two positive numbers
             dut.core.`PROBE_ALU_SEL = 2'b00; // Assuming 2'b00 is the opcode for ADD
             dut.core.`PROBE_ALU_OP1 = 32'd5;
             dut.core.`PROBE_ALU_OP2 = 32'd3;
             if (alu_res != 32'd8)
-                $display("[PD0] ADD Error: Signed positive addition failed.");
+                $error("[PD0] ADD Error: Signed positive addition failed.");
         end
         'd7 : begin // Add Case 7: Two negative numbers
             dut.core.`PROBE_ALU_SEL = 2'b00;
             dut.core.`PROBE_ALU_OP1 = -32'd5;
             dut.core.`PROBE_ALU_OP2 = -32'd3;
             if (alu_res != -32'd8 && alu_nflag)
-                $display("[PD0] ADD Error: Signed negative addition failed.");
+                $error("[PD0] ADD Error: Signed negative addition failed.");
         end
         'd8 : begin // Add Case 8: Mixed signs (positive result)
             dut.core.`PROBE_ALU_SEL = 2'b00;
             dut.core.`PROBE_ALU_OP1 = 32'd10;
             dut.core.`PROBE_ALU_OP2 = -32'd4;
             if (alu_res != 32'd6)
-                $display("[PD0] ADD Error: Mixed sign addition failed (pos result).");
+                $error("[PD0] ADD Error: Mixed sign addition failed (pos result).");
         end
         'd9 : begin // Add Case 9: Mixed signs (negative result)
             dut.core.`PROBE_ALU_SEL = 2'b00;
             dut.core.`PROBE_ALU_OP1 = -32'd10;
             dut.core.`PROBE_ALU_OP2 = 32'd4;
             if (alu_res != -32'd6 && alu_nflag)
-                $display("[PD0] ADD Error: Mixed sign addition failed (neg result).");
+                $error("[PD0] ADD Error: Mixed sign addition failed (neg result).");
         end
         'd10 : begin // Add Case 10: Overflow
             dut.core.`PROBE_ALU_SEL = 2'b00;
@@ -140,7 +141,7 @@ module top1;
             dut.core.`PROBE_ALU_OP2 = 32'd1;
             // Expected result: -2147483648 (most negative signed 32-bit value due to wrap-around)
             if (alu_res != -32'd2147483648)
-                $display("[PD0] ADD Error: Overflow test failed.");
+                $error("[PD0] ADD Error: Overflow test failed.");
         end
         'd11 : begin // Add Case 11: Underflow
             dut.core.`PROBE_ALU_SEL = 2'b00;
@@ -148,7 +149,7 @@ module top1;
             dut.core.`PROBE_ALU_OP2 = -32'd1;
             // Expected result: 2147483647 (most positive signed 32-bit value due to wrap-around)
             if (alu_res != 32'd2147483647)
-                $display("[PD0] ADD Error: Underflow test failed.");
+                $error("[PD0] ADD Error: Underflow test failed.");
         end
 
         // TESTING SUB
@@ -157,28 +158,28 @@ module top1;
             dut.core.`PROBE_ALU_OP1 = 32'd8;
             dut.core.`PROBE_ALU_OP2 = 32'd5;
             if (alu_res != 32'd3)
-                $display("[PD0] SUB Error: Signed positive subtraction failed.");
+                $error("[PD0] SUB Error: Signed positive subtraction failed.");
         end
         'd13 : begin // Sub Case 2: Two negative numbers
             dut.core.`PROBE_ALU_SEL = 2'b01;
             dut.core.`PROBE_ALU_OP1 = -32'd8;
             dut.core.`PROBE_ALU_OP2 = -32'd5;
             if (alu_res != -32'd3 && alu_nflag)
-                $display("[PD0] SUB Error: Signed negative subtraction failed.");
+                $error("[PD0] SUB Error: Signed negative subtraction failed.");
         end
         'd14 : begin // Sub Case 3: Mixed signs (positive result)
             dut.core.`PROBE_ALU_SEL = 2'b01;
             dut.core.`PROBE_ALU_OP1 = 32'd10;
             dut.core.`PROBE_ALU_OP2 = -32'd4;
             if (alu_res != 32'd14)
-                $display("[PD0] SUB Error: Mixed sign subtraction failed (pos result).");
+                $error("[PD0] SUB Error: Mixed sign subtraction failed (pos result).");
         end
         'd15 : begin // Sub Case 4: Mixed signs (negative result)
             dut.core.`PROBE_ALU_SEL = 2'b01;
             dut.core.`PROBE_ALU_OP1 = -32'd10;
             dut.core.`PROBE_ALU_OP2 = 32'd4;
             if (alu_res != -32'd14 && alu_nflag)
-                $display("[PD0] SUB Error: Mixed sign subtraction failed (neg result).");
+                $error("[PD0] SUB Error: Mixed sign subtraction failed (neg result).");
         end
         'd16 : begin // Sub Case 5: Overflow
             dut.core.`PROBE_ALU_SEL = 2'b01;
@@ -186,7 +187,7 @@ module top1;
             dut.core.`PROBE_ALU_OP2 = -32'd1;
             // Expected result: -2147483648
             if (alu_res != -32'd2147483648)
-                $display("[PD0] SUB Error: Overflow test failed.");
+                $error("[PD0] SUB Error: Overflow test failed.");
         end
         'd17 : begin // Sub Case 6: Underflow
             dut.core.`PROBE_ALU_SEL = 2'b01;
@@ -194,7 +195,7 @@ module top1;
             dut.core.`PROBE_ALU_OP2 = 32'd1;
             // Expected result: 2147483647
             if (alu_res != 32'd2147483647)
-                $display("[PD0] SUB Error: Underflow test failed.");
+                $error("[PD0] SUB Error: Underflow test failed.");
         end
 
         'd18 : begin // AND Case 1: Simple test
@@ -202,21 +203,21 @@ module top1;
             dut.core.`PROBE_ALU_OP1 = 32'h0F0F0F0F;
             dut.core.`PROBE_ALU_OP2 = 32'hF0F0F0F0;
             if (alu_res != 32'h00000000)
-                $display("[PD0] AND Error: 1");
+                $error("[PD0] AND Error: 1");
         end
         'd19 : begin // AND Case 2: Identity (AND with all 1s)
             dut.core.`PROBE_ALU_SEL = 2'b10;
             dut.core.`PROBE_ALU_OP1 = 32'hA5A5A5A5;
             dut.core.`PROBE_ALU_OP2 = 32'hFFFFFFFF;
             if (alu_res != 32'hA5A5A5A5)
-                $display("[PD0] AND Error: 2");
+                $error("[PD0] AND Error: 2");
         end
         'd20 : begin // AND Case 3: Zeroing out (AND with all 0s)
             dut.core.`PROBE_ALU_SEL = 2'b10;
             dut.core.`PROBE_ALU_OP1 = 32'hA5A5A5A5;
             dut.core.`PROBE_ALU_OP2 = 32'h00000000;
             if (alu_res != 32'h00000000 && alu_zflag)
-                $display("[PD0] AND Error: 3");
+                $error("[PD0] AND Error: 3");
         end
 
         // TESTING OR
@@ -225,21 +226,21 @@ module top1;
             dut.core.`PROBE_ALU_OP1 = 32'hA5A5A5A5;
             dut.core.`PROBE_ALU_OP2 = 32'h5A5A5A5A;
             if (alu_res != 32'hFFFFFFFF)
-                $display("[PD0] OR Error: 1");
+                $error("[PD0] OR Error: 1");
         end
         'd22 : begin // OR Case 2: Identity (OR with 0)
             dut.core.`PROBE_ALU_SEL = 2'b11;
             dut.core.`PROBE_ALU_OP1 = 32'hA5A5A5A5;
             dut.core.`PROBE_ALU_OP2 = 32'h00000000;
             if (alu_res != 32'hA5A5A5A5)
-                $display("[PD0] OR Error: 2");
+                $error("[PD0] OR Error: 2");
         end
         'd23 : begin // OR Case 3: Setting all bits (OR with all 1s)
             dut.core.`PROBE_ALU_SEL = 2'b11;
             dut.core.`PROBE_ALU_OP1 = 32'h00000000;
             dut.core.`PROBE_ALU_OP2 = 32'hFFFFFFFF;
             if (alu_res != 32'hFFFFFFFF)
-                $display("[PD0] OR Error: 3");
+                $error("[PD0] OR Error: 3");
         end
       endcase
   end
@@ -298,10 +299,24 @@ module top1;
   logic [31:0] tsp_op1;
   logic [31:0] tsp_op2;
   logic [31:0] tsp_out;
+  logic [31:0] increase = 35;
+  
   always_comb begin: tsp_input
       dut.core.`PROBE_TSP_OP1 = counter[31:0];
-      dut.core.`PROBE_TSP_OP2 = {counter[1], counter[2], counter[0], counter[31:3]};
+      dut.core.`PROBE_TSP_OP2 = increase;
   end
+  
+  logic [1:0]clkcounter =0;
+  always_ff @(posedge clock) begin : pipeline_skip
+    if(clkcounter == 3) begin
+        if(tsp_out != increase)
+            $error("Pipeline is not working as intended");
+        else 
+            $display("Pipeline Good");
+    end
+    increase <= increase + 5;
+  end
+
   always_ff @(posedge clock) begin: tsp_test
       if (reset_done) begin
         $display("[TSP] op1=%b, op2=%b, out=%b", tsp_op1, tsp_op2, tsp_out);
