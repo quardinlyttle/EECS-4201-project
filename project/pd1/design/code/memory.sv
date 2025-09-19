@@ -33,6 +33,8 @@ module memory #(
   output logic [DWIDTH-1:0] data_o
 );
 
+  localparam integer BYTE_SIZE = 8;
+
   logic [DWIDTH-1:0] temp_memory [0:`MEM_DEPTH];
   // Byte-addressable memory
   logic [7:0] main_memory [0:`MEM_DEPTH];  // Byte-addressable memory
@@ -56,5 +58,37 @@ module memory #(
    * student below....
    *
    */
+
+  // Write Memory
+  always_ff @(posedge clk) begin : Write_Mem
+    if (rst) begin
+        // Reset all bytes of memory to zero
+        for (int i = 0; i < `MEM_DEPTH; i++) begin
+            main_memory[i] <= 8'h00;
+        end
+    end else if (write_en_i) begin
+      // Check if Address is in range, ignore write if not
+      if (address < `MEM_DEPTH - 3) begin
+        // Loop iterates through 4 input bytes
+        for (int i = 0; i<4; i++) begin
+          main_memory[address + i] <= data_i[i*BYTE_SIZE +: BYTE_SIZE];
+        end
+        /*
+        * What the For-Loop is doing:
+        * main_memory[address]      = data_i[7:0];
+        * main_memory[address + 1]  = data_i[15:8];
+        * main_memory[address + 2]  = data_i[23:16];
+        * main_memory[address + 3]  = data_i[31:24];
+        */
+      end
+    end
+  end
+
+  // Read from Memory, output zero if not enabled
+  assign data_o = read_en_i ? { main_memory[address + 3],
+                                main_memory[address + 2],
+                                main_memory[address + 1],
+                                main_memory[address]
+                              } : '0;
 
 endmodule : memory
