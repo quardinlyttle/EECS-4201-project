@@ -123,7 +123,9 @@ module memory #(
    *           |-------- 0 --------|-------- 0 --------|-------- 0 --------|-------- 0 --------|
    */
   always_comb begin
-    if (read_en_i) begin
+    if(rst) begin
+      data_o = 'd0;
+    end else if (read_en_i) begin
       case(address) :
         // Normal Case: Read four full bytes.
         default : begin
