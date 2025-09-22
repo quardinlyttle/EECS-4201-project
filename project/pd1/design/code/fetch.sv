@@ -29,5 +29,33 @@ module fetch #(
      * student below...
      */
 
+    // PC: Program Counter
+    reg [31:0] pc;
+
+    always_ff @(posedge clk) begin
+        if (rst) begin
+            pc <= 'b0;
+        end else begin
+            pc <= pc + 'd4;
+        end
+    end
+
+    // Initialize Instruction Memory
+    memory #(
+        .AWIDTH(AWIDTH),
+        .DWIDTH(DWIDTH),
+        .BASE_ADDR(BASEADDR)
+    ) insn_mem (
+        .clk(clk),
+        .rst(rst),
+
+        .addr_i(pc + BASEADDR),
+        .data_i('d0),
+
+        .read_en_i(1'b1),
+        .write_en_i(1'b0),
+
+        .data_o(insn_o)
+    );
+
 endmodule : fetch
-				
