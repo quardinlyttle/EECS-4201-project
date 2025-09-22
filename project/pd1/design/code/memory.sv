@@ -122,7 +122,7 @@ module memory #(
    * data_o = '0;
    *           |-------- 0 --------|-------- 0 --------|-------- 0 --------|-------- 0 --------|
    */
-  always_comb @(posedge clk) begin
+  always_comb begin
     if (read_en_i) begin
       case(address) :
         // Normal Case: Read four full bytes.
