@@ -59,10 +59,11 @@ module memory #(
    *
    */
 
-  // Write Memory
+  // ========================= MEMORY WRITE LOGIC =========================
   always_ff @(posedge clk) begin : Write_Mem
     if (rst) begin
         // Reset all bytes of memory to zero
+        // ISSUE: long cycle time
         for (int i = 0; i < `MEM_DEPTH; i++) begin
             main_memory[i] <= 8'h00;
         end
@@ -84,11 +85,83 @@ module memory #(
     end
   end
 
-  // Read from Memory, output zero if not enabled
-  assign data_o = read_en_i ? { main_memory[address + 3],
-                                main_memory[address + 2],
-                                main_memory[address + 1],
-                                main_memory[address]
-                              } : '0;
+  /* ========================= MEMORY READ LOGIC =========================
+   * Read from memory, output zero if not enabled
+   * We have logic that accounts for loading bytes from last 3 bytes, such that output would be 0 extended.
+
+   * Visual representation of the data output based on the memory address.
+   * The output is always a 32-bit word (4 bytes).
+   * Each 'B' represents a byte read from memory.
+   * Each '0' represents a zero-padded byte.
+
+   * Normal Case: Read four full bytes.
+   * address <= MEM_DEPTH - 4
+   *           |      byte 3       |      byte 2       |      byte 1       |      byte 0       |
+   * data_o = { main_memory[addr+3], main_memory[addr+2], main_memory[addr+1], main_memory[addr] };
+   *           |-------- B --------|-------- B --------|-------- B --------|-------- B --------|
+
+   * Special Case 1: Read from the third-to-last address.
+   * address = MEM_DEPTH - 3
+   *           |      byte 3       |      byte 2       |      byte 1       |      byte 0       |
+   * data_o = { 8'b0,                main_memory[addr+2], main_memory[addr+1], main_memory[addr] };
+   *           |-------- 0 --------|-------- B --------|-------- B --------|-------- B --------|
+
+   * Special Case 2: Read from the second-to-last address.
+   * address = MEM_DEPTH - 2
+   *           |      byte 3       |      byte 2       |      byte 1       |      byte 0       |
+   * data_o = {                  16'b0,                   main_memory[addr+1], main_memory[addr] };
+   *           |-------- 0 --------|-------- 0 --------|-------- B --------|-------- B --------|
+
+   * Special Case 3: Read from the last address.
+   * address = MEM_DEPTH - 1
+   *           |      byte 3       |      byte 2       |      byte 1       |      byte 0       |
+   * data_o = {                            24'b0,                              main_memory[addr] };
+   *           |-------- 0 --------|-------- 0 --------|-------- 0 --------|-------- B --------|
+
+   * Not Enabled Case: If read_en_i is not enabled, the output is all zeros.
+   * data_o = '0;
+   *           |-------- 0 --------|-------- 0 --------|-------- 0 --------|-------- 0 --------|
+   */
+  always_comb @(posedge clk) begin
+    if (read_en_i) begin
+      case(address) :
+        // Normal Case: Read four full bytes.
+        default : begin
+          data_o =  { main_memory[address + 3],
+                      main_memory[address + 2],
+                      main_memory[address + 1],
+                      main_memory[address]
+                    };
+        end
+
+        // Special Case 1: Read from the third-to-last address.
+        (`MEM_DEPTH - 3) : begin
+          data_o =  { 8'b0,
+                      main_memory[address + 2],
+                      main_memory[address + 1],
+                      main_memory[address]
+                    };
+        end
+
+        // Special Case 2: Read from the second-to-last address.
+        (`MEM_DEPTH - 2) : begin
+          data_o =  { 16'b0,
+                      main_memory[address + 1],
+                      main_memory[address]
+                    };
+        end
+
+        // Special Case 3: Read from the last address.
+        (`MEM_DEPTH - 1) : begin
+          data_o =  { 24'b0,
+                      main_memory[address]
+                    };
+        end
+      endcase
+    end else begin
+      // Not Enabled Case: If read_en_i is not enabled, the output is all zeros.
+      data_o = '0;
+    end
+  end
 
 endmodule : memory
