@@ -1,4 +1,6 @@
 project/*/work/*
-project/pd0/test_pd.vcd
+*.vcd
 project/pd0/verif/scripts/transcript
-project/pd0/verif/scripts/run.macro
+*run.macro
+*transcript
+

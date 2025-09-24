@@ -40,7 +40,7 @@ module pd1 #(
     .DWIDTH(DWIDTH)
   ) fetch_inst (
     .clk(clk),
-    .reset(rst),
+    .rst(reset),
 
     .pc_o(FETCH_PC),
     .insn_o(FETCH_INSN)
@@ -75,8 +75,8 @@ module pd1 #(
 
   // ========= Probe Outputs =========
   // Fetch Probes
-  assign probe_f_pc   = FETCH_PC;
-  assign probe_f_insn = FETCH_INSN;
+  assign probe_f_pc     = FETCH_PC;
+  assign probe_f_insn   = FETCH_INSN;
   // Memory Probes
   assign probe_data_out = MEMORY_DATA_OUT;
 
