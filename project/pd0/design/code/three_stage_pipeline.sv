@@ -42,7 +42,7 @@ parameter int DWIDTH = 8)(
      * and set up the necessary connections
      *
      */
-    
+
     wire [DWIDTH-1:0] stage2_in_1, stage2_in_2, stage2_out_1, stage2_out_2;
     wire [DWIDTH-1:0] stage1_1, stage1_2;
     wire [DWIDTH-1:0] stage3_in_1, stage3_out_1;
@@ -61,7 +61,7 @@ parameter int DWIDTH = 8)(
     reg_rst #(.DWIDTH(DWIDTH)) pipe2_1 (.clk(clk), .rst(rst), .in_i(stage2_in_1), .out_o(stage2_out_1));
     //stage2_in2 is the output from the adder.
     reg_rst #(.DWIDTH(DWIDTH)) pipe2_2 (.clk(clk), .rst(rst), .in_i(stage2_in_2), .out_o(stage2_out_2));
-    
+
     //Remember, the operation is SUM-op1_i, so the output from the first stage subtracts the first input from the summed output.
     alu #(.DWIDTH(DWIDTH)) subtract (.sel_i(2'b01), .op1_i(stage2_out_2), .op2_i(stage2_out_1),.res_o(stage3_in_1),.zero_o(), .neg_o());
 

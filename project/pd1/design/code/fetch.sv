@@ -58,4 +58,6 @@ module fetch #(
         .data_o(insn_o)
     );
 
+    assign pc_o = pc;
+
 endmodule : fetch
