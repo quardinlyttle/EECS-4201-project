@@ -25,7 +25,7 @@ module memory #(
   // inputs
   input logic clk,
   input logic rst,
-  input logic [AWIDTH-1:0] addr_i = BASE_ADDR,
+  input logic [AWIDTH-1:0] addr_i,
   input logic [DWIDTH-1:0] data_i,
   input logic read_en_i,
   input logic write_en_i,
@@ -39,8 +39,9 @@ module memory #(
   // Byte-addressable memory
   logic [7:0] main_memory [0:`MEM_DEPTH];  // Byte-addressable memory
   logic [AWIDTH-1:0] address;
-  assign address = addr_i - BASE_ADDR;
+  assign address = (addr_i < BASE_ADDR) ? 'h0 : (addr_i - BASE_ADDR);
 
+`ifndef TESTBENCH
   initial begin
     $readmemh(`MEM_PATH, temp_memory);
     // Load data from temp_memory into main_memory
@@ -52,6 +53,7 @@ module memory #(
     end
     $display("IMEMORY: Loaded %0d 32-bit words from %s", `LINE_COUNT, `MEM_PATH);
   end
+`endif
 
   /*
    * Process definitions to be filled by
