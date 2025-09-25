@@ -61,13 +61,7 @@ module memory #(
 
   // ========================= MEMORY WRITE LOGIC =========================
   always_ff @(posedge clk) begin : Write_Mem
-    if (rst) begin
-        // Reset all bytes of memory to zero
-        // ISSUE: long cycle time
-        for (int i = 0; i < `MEM_DEPTH; i++) begin
-            main_memory[i] <= 8'h00;
-        end
-    end else if (write_en_i) begin
+    if (write_en_i) begin
       // Check if Address is in range, ignore write if not
       if (address < `MEM_DEPTH - 3) begin
         // Loop iterates through 4 input bytes
