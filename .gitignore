@@ -3,4 +3,4 @@ project/*/work/*
 project/pd0/verif/scripts/transcript
 *run.macro
 *transcript
-
+project/*/design/code/work/*

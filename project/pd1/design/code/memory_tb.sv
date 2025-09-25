@@ -49,95 +49,93 @@ module memory_tb ();
         $display("--- BASE_ADDR = %h, MEM_DEPTH = %d ---", BASE_ADDR, `MEM_DEPTH);
         $display("-------------------------------------------------");
 
-        // // 1. Reset the DUT
-        // perform_reset();
+        // 1. Reset the DUT
+        perform_reset();
 
-        // // --- Test Case 1: Basic Write then Read ---
-        // $display("\n--- Test Case 1: Basic Write then Read ---");
-        // write_mem('hA5, 32'hDEADBEEF);
-        // read_and_check('hA5, 32'hDEADBEEF);
+        // --- Test Case 1: Basic Write then Read ---
+        $display("\n--- Test Case 1: Basic Write then Read ---");
+        write_mem('hA5, 32'hDEADBEEF);
+        read_and_check('hA5, 32'hDEADBEEF);
 
-        // // --- Test Case 2: Sequential Write, Sequential Read ---
-        // $display("\n--- Test Case 2: Sequential Write / Read ---");
-        // for (int i = 0; i < 16; i++) begin
-        //     write_mem(i, i * 4);
-        // end
-        // for (int i = 0; i < 16; i++) begin
-        //     read_and_check(i, i * 4);
-        // end
-        // $display("Sequential test passed!");
+        // --- Test Case 2: Sequential Write, Sequential Read ---
+        $display("\n--- Test Case 2: Sequential Write / Read ---");
+        for (int i = 0; i < 16; i++) begin
+            write_mem(i, i * 4);
+        end
+        for (int i = 0; i < 16; i++) begin
+            read_and_check(i, i * 4);
+        end
 
-        // // --- Test Case 3: Random Write and Read ---
-        // $display("\n--- Test Case 3: Random Write / Read ---");
-        // for (int i = 0; i < 64; i++) begin // Perform 64 random writes
-        //     int unsigned random_offset;
-        //     logic [DWIDTH-1:0] random_data;
-        //     random_offset = $urandom_range(0, `MEM_DEPTH-1);
-        //     random_data = $urandom();
-        //     write_mem(random_offset, random_data);
-        // end
-        // // Now read back all written values and check
-        // for (int i = 0; i < `MEM_DEPTH; i++) begin
-        //     if (expected_memory[i] !== 'x) begin // Check only initialized locations
-        //         read_and_check(i, expected_memory[i]);
-        //     end
-        // end
-        // $display("Random test passed!");
+        // --- Test Case 3: Random Write and Read ---
+        $display("\n--- Test Case 3: Random Write / Read ---");
+        for (int i = 0; i < 64; i++) begin // Perform 64 random writes
+            int unsigned random_offset;
+            logic [DWIDTH-1:0] random_data;
+            random_offset = $urandom_range(0, `MEM_DEPTH-1);
+            random_data = $urandom();
+            write_mem(random_offset, random_data);
+        end
+        // Now read back all written values and check
+        for (int i = 0; i < `MEM_DEPTH; i++) begin
+            if (expected_memory[i] !== 'x) begin // Check only initialized locations
+                read_and_check(i, expected_memory[i]);
+            end
+        end
 
-        // // --- Test Case 4: Back-to-Back Write then Read ---
-        // $display("\n--- Test Case 4: Back-to-Back Write/Read (Same Address) ---");
-        // @(posedge clk);
-        // addr <= BASE_ADDR + 'hF0;
-        // data_in <= 32'h12345678;
-        // write_en <= 1;
-        // read_en <= 0;
-        // @(posedge clk);
-        // // On the very next cycle, switch to read
-        // write_en <= 0;
-        // read_en <= 1;
-        // // Assuming 1-cycle read latency, data will be valid on the next edge
-        // @(posedge clk);
-        // if (data_out === 32'h12345678) begin
-        //     $display("Back-to-back test PASSED.");
-        // end else begin
-        //     $error("Back-to-back test FAILED. Expected %h, got %h", 32'h12345678, data_out);
-        // end
-        // read_en <= 0;
+        // --- Test Case 4: Back-to-Back Write then Read ---
+        $display("\n--- Test Case 4: Back-to-Back Write/Read (Same Address) ---");
+        @(posedge clk);
+        addr <= BASE_ADDR + 'hF0;
+        data_in <= 32'h12345678;
+        write_en <= 1;
+        read_en <= 0;
+        @(posedge clk);
+        // On the very next cycle, switch to read
+        write_en <= 0;
+        read_en <= 1;
+        // Assuming 1-cycle read latency, data will be valid on the next edge
+        @(posedge clk);
+        if (data_out === 32'h12345678) begin
+            $display("Back-to-back test PASSED.");
+        end else begin
+            $error("Back-to-back test FAILED. Expected %h, got %h", 32'h12345678, data_out);
+        end
+        read_en <= 0;
 
-        // // --- Test Case 5: Address Boundary Check ---
-        // $display("\n--- Test Case 5: Address Boundary Check ---");
-        // write_mem(0, 32'hCAFEF00D);                   // First address
-        // write_mem(`MEM_DEPTH-1, 32'hBEEFFACE); // Last address
-        // read_and_check(0, 32'hCAFEF00D);
-        // read_and_check(`MEM_DEPTH-1, 32'hBEEFFACE);
+        // --- Test Case 5: Address Boundary Check ---
+        $display("\n--- Test Case 5: Address Boundary Check ---");
+        write_mem(0, 32'hCAFEF00D);                   // First address
+        write_mem(`MEM_DEPTH-1, 32'hBEEFFACE); // Last address
+        read_and_check(0, 32'hCAFEF00D);
+        read_and_check(`MEM_DEPTH-1, 32'hBEEFFACE);
 
-        // // --- Test Case 6: Simultaneous Read/Write Enable ---
-        // $display("\n--- Test Case 6: Simultaneous Read/Write Enable ---");
-        // // We assume write takes priority
-        // write_mem('hCC, 32'hFEEDF00D); // Pre-load a value
-        // @(posedge clk);
-        // addr <= BASE_ADDR + 'hCC;
-        // data_in <= 32'hABADBABE;      // New data to write
-        // write_en <= 1;
-        // read_en <= 1;                 // Assert both
-        // @(posedge clk);
-        // write_en <= 0;
-        // read_en <= 0;
-        // read_and_check('hCC, 32'hABADBABE); // Check if the NEW data was written
+        // --- Test Case 6: Simultaneous Read/Write Enable ---
+        $display("\n--- Test Case 6: Simultaneous Read/Write Enable ---");
+        // We assume write takes priority
+        write_mem('hCC, 32'hFEEDF00D); // Pre-load a value
+        @(posedge clk);
+        addr <= BASE_ADDR + 'hCC;
+        data_in <= 32'hABADBABE;      // New data to write
+        write_en <= 1;
+        read_en <= 1;                 // Assert both
+        @(posedge clk);
+        write_en <= 0;
+        read_en <= 0;
+        read_and_check('hCC, 32'hABADBABE); // Check if the NEW data was written
 
-        // // --- Test Case 7: Read from Uninitialized Address ---
-        // $display("\n--- Test Case 7: Uninitialized Read ---");
-        // @(posedge clk);
-        // addr <= BASE_ADDR + 'hEE; // An offset we have not written to
-        // read_en <= 1;
-        // @(posedge clk); // Wait for read latency
-        // if ($isunknown(data_out)) begin
-        //      $display("Uninitialized read test PASSED. Got expected X's.");
-        // end else begin
-        //      $error("Uninitialized read test FAILED. Expected X's, got %h", data_out);
-        // end
-        // @(posedge clk);
-        // read_en <= 0;
+        // --- Test Case 7: Read from Uninitialized Address ---
+        $display("\n--- Test Case 7: Uninitialized Read ---");
+        @(posedge clk);
+        addr <= BASE_ADDR + 'hEE; // An offset we have not written to
+        read_en <= 1;
+        @(posedge clk); // Wait for read latency
+        if ($isunknown(data_out)) begin
+             $display("Uninitialized read test PASSED. Got expected X's.");
+        end else begin
+             $error("Uninitialized read test FAILED. Expected X's, got %h", data_out);
+        end
+        @(posedge clk);
+        read_en <= 0;
 
         $display("\n-------------------------------------------------");
         $display("--- All Tests Completed Successfully! ---");
