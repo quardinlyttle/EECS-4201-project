@@ -1,8 +1,5 @@
 `timescale 1ns/1ps
 
-`define MEM_DEPTH 1048576
-`define TESTBENCH 1
-
 module memory_tb ();
     // Parameters to match the DUT
     localparam int AWIDTH = 32;
@@ -60,10 +57,10 @@ module memory_tb ();
         // --- Test Case 2: Sequential Write, Sequential Read ---
         $display("\n--- Test Case 2: Sequential Write / Read ---");
         for (int i = 0; i < 16; i++) begin
-            write_mem(i, i * 4);
+            write_mem(i*4, i * 4);
         end
         for (int i = 0; i < 16; i++) begin
-            read_and_check(i, i * 4);
+            read_and_check(i*4, i * 4);
         end
 
         // --- Test Case 3: Random Write and Read ---
