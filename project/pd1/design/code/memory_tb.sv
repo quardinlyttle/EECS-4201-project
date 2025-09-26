@@ -17,7 +17,6 @@ module memory_tb ();
     logic [DWIDTH-1:0] expected_memory [`MEM_DEPTH];
 
     // Instantiate the Device Under Test (DUT)
-    // Assumes your memory module is named 'memory'
     memory #(
         .AWIDTH(AWIDTH),
         .DWIDTH(DWIDTH),
@@ -100,6 +99,7 @@ module memory_tb ();
         read_en <= 0;
 
         // --- Test Case 5: Address Boundary Check ---
+        //This functionality is not going to be supported in the memory for now as it is intended to be used in word aligned fetch. 
         $display("\n--- Test Case 5: Address Boundary Check ---");
         write_mem(0, 32'hCAFEF00D);                   // First address
         write_mem(`MEM_DEPTH-1, 32'hBEEFFACE); // Last address

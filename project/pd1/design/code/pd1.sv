@@ -68,6 +68,7 @@ module pd1 #(
     .data_o(MEMORY_DATA_OUT)
   );
 
+  // ========= Probe Inputs =========
   assign MEMORY_ADDR = probe_addr;
   assign MEMORY_DATA_IN = probe_data_in;
   assign MEMORY_READ_EN = probe_read_en;
