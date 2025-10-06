@@ -91,29 +91,37 @@ module decode #(
             //R-Type instructions
             7'b0110011: begin
                 //slice instruction
+                //should we explicitly handle funct3 and 7 here or do it later in the ALU or control?
                 rd = instruction[11:7];
                 funct3 = instruction[14:12];
                 rs1 = instruction[19:15];
                 rs2 = instruction[24:20];
                 funct7 = instruction[31:25];
+                shiftamt ='d0;
+                imm_reg = 'd0;
             end
 
-            //I-Type Instructions:
+            //I-Type Instructions (except loads):
             7'0010011: begin
                 rd = instruction[11:7];
                 funct3 = instruction[14:12];
                 rs1 = instruction[19:15];
+                rs2= 'd0;
+                funct7 ='d0;
                 case(funct3):
                     //Remember, all sign extended unless otherwise noted
                     //ADDI, XORI, ORI, ANDI
-                    3'h0: imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
-                    3'h4: imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
-                    3'h6: imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
-                    3'h7: imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
+                    3'h0,
+                    3'h4,
+                    3'h6,
+                    3'h7: begin
+                        imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
+                        shiftamt ='d0;
+                    end
 
                     //Shift logical left
                     /*Note, I am passing on the values of the immediate for the ALU or control
-                    to be able to establish the logical or airthmetic for right or left. 
+                    to be able to establish the logical or airthmetic for right or left
                     */
                     3'h1: begin
                         if(instruction[31:25]==0x00) begin
@@ -130,16 +138,37 @@ module decode #(
                         end
                     end
 
+                    //Set Less Than (signed and unsigned)
+                    3'h2,
+                    3'h3: imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
+
+                    default: begin
+                        imm_reg='d0;
+                        shiftamt ='d0;
+                    end
                 endcase
 
             end
-            //Zero out everything on reset or unknown opcode
+
+            //Load instructions
+            //Should we explcitily handle checking for funct3 and funct7 instead of simply slicing here?
+            7'b000_0011: begin
+                rd = instruction[11:7];
+                funct3 = instruction[14:12];
+                rs1 = instruction[19:15];
+                rs2= 'd0;
+                funct7 ='d0;
+                imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
+            end
+            //Zero out everything on reset or unknown/invalid opcode
             default : begin
                 rd = 'd0;
                 funct3 = 'd0;
                 rs1 = 'd0;
                 rs2 = 'd0;
                 funct7 = 'd0;
+                shiftamt ='d0;
+                imm_reg = 'd0;
 
             end
         endcase
