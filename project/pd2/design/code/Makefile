@@ -2,8 +2,8 @@
 # ModelSim Multi-TB Makefile
 # =====================
 
-TESTBENCHES = decode_tb igen_tb
-DESIGN_SRCS = decode.sv igen.sv
+TESTBENCHES = decode_tb igen_tb control_tb
+DESIGN_SRCS = decode.sv igen.sv control.sv
 COMMON_SRCS = constants.svh
 WORK = work
 
