@@ -53,15 +53,17 @@ module igen (
                     */
                     3'h1: begin
                         if(instruction[31:25]==0x00) begin
-                            imm_reg = {{DWIDTH-12{0}},instruction[31:25],instruction[11:7]};
+                            imm_reg = {{DWIDTH-12{0}},instruction[31:20]};
                         end
+                        else imm_reg = 'd0;
                     end
 
                     //Shift Right Logical and Shift Right Arithmetic
                     3'h5: begin
                         if(instruction[31:25]==0x00 ||instruction[31:25]==0x20) begin
-                            imm_reg = {{DWIDTH-12{0}},instruction[31:25],instruction[11:7]};
+                            imm_reg = {{DWIDTH-12{0}},instruction[31:20]};
                         end
+                        else imm_reg = 'd0;
                     end
 
                     //Set Less Than (signed and unsigned)
@@ -105,12 +107,12 @@ module igen (
 
             //Load Upper Immedaite
             7'b011_0111: begin
-                imm_reg = {{DWIDTH-20{instruction[31]}}, instruction[31:12]};
+                imm_reg = {instruction[31:12],12'b0};
             end
 
             //Add Upper Immediate to PC
             7'b001_0111: begin
-                imm_reg = {{DWIDTH-20{instruction[31]}}, instruction[31:12]};
+                imm_reg = {instruction[31:12],12'b0};
             end
 
             //Zero out everything on reset or unknown/invalid opcode

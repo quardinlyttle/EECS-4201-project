@@ -112,7 +112,6 @@ module decode #(
                 funct3 = instruction[14:12];
                 rs1 = instruction[19:15];
                 rs2= 'd0;
-                funct7 ='d0;
                 case(funct3):
                     //Remember, all sign extended unless otherwise noted
                     //ADDI, XORI, ORI, ANDI
@@ -122,6 +121,7 @@ module decode #(
                     3'h7: begin
                         imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
                         shiftamt ='d0;
+                        funct7 ='d0;
                     end
 
                     //Shift logical left
@@ -130,22 +130,38 @@ module decode #(
                     */
                     3'h1: begin
                         if(instruction[31:25]==0x00) begin
-                            shiftamt = instruction[11:7];
-                            imm_reg = {{DWIDTH-12{0}},instruction[31:25],instruction[11:7]};
+                            shiftamt = instruction[24:20];
+                            imm_reg = {{DWIDTH-12{0}},instruction[31:20]};
+                            funct7 = instruction[31:25];
+                        end
+                        //catch possible errors?
+                        else begin
+                            shiftamt = 'd0;
+                            imm_reg = 'd0;
+                            funct7 = 'd0;
                         end
                     end
 
                     //Shift Right Logical and Shift Right Arithmetic
                     3'h5: begin
                         if(instruction[31:25]==0x00 ||instruction[31:25]==0x20) begin
-                            shiftamt = instruction[11:7];
-                            imm_reg = {{DWIDTH-12{0}},instruction[31:25],instruction[11:7]};
+                            shiftamt = instruction[24:20];
+                            imm_reg = {{DWIDTH-12{0}},instruction[31:20]};
+                            funct7 = instruction[31:25];
+                        end
+                        else begin
+                            shiftamt = 'd0;
+                            imm_reg = 'd0;
+                            funct7 = 'd0;
                         end
                     end
 
                     //Set Less Than (signed and unsigned)
                     3'h2,
-                    3'h3: imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
+                    3'h3: begin
+                        imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
+                        funct7 = 'd0;
+                    end
 
                     default: begin
                         imm_reg='d0;
@@ -187,7 +203,7 @@ module decode #(
                 rs2= instruction[24:20];
                 funct7 ='d0;
                 shiftamt ='d0;
-                //Pay special attention to how Branch instructions are sliced!! 
+                //Pay special attention to how Branch instructions are sliced!!
                 imm_reg = {{DWIDTH-13{instruction[31]}}, instruction[31], instruction[7],instruction[30:25],instruction[11:8],1'b0};
              end
 
@@ -207,7 +223,7 @@ module decode #(
              //Note: this uses the I Type format. Funct 3 is fixed to 0;
              7'b110_0111: begin
                 rd = instruction[11:7];
-                funct3 = 0'd0;
+                funct3 = 'd0;
                 rs1 = instruction[19:15];
                 rs2= 'd0;
                 funct7 ='d0;
@@ -218,23 +234,23 @@ module decode #(
             //Load Upper Immedaite
             7'b011_0111: begin
                 rd = instruction[11:7];
-                funct3 = 0'd0;
+                funct3 = 'd0;
                 rs1 = 'd0;
                 rs2= 'd0;
                 funct7 ='d0;
                 shiftamt ='d0;
-                imm_reg = {{DWIDTH-20{instruction[31]}}, instruction[31:12]};
+                imm_reg = {instruction[31:12],12'b0};
             end
 
             //Add Upper Immediate to PC
             7'b001_0111: begin
                 rd = instruction[11:7];
-                funct3 = 0'd0;
+                funct3 = 'd0;
                 rs1 = 'd0;
                 rs2= 'd0;
                 funct7 ='d0;
                 shiftamt ='d0;
-                imm_reg = {{DWIDTH-20{instruction[31]}}, instruction[31:12]};
+                imm_reg = {instruction[31:12],12'b0};
             end
 
             //Zero out everything on reset or unknown/invalid opcode
