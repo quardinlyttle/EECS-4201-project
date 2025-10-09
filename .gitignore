@@ -4,3 +4,14 @@ project/pd0/verif/scripts/transcript
 *run.macro
 *transcript
 project/*/design/code/work/*
+project/pd1/verif/scripts/package.vsim.pd1.Bleed_Red.tar.gz
+project/pd0/verif/scripts/package.vsim.pd0.Bleed_Red.tar.gz
+project/pd0/verif/scripts/run.macro
+project/pd0/verif/tests/test_pd.sv
+project/pd1/verif/scripts/test1.dump
+project/pd1/verif/scripts/test2.dump
+project/pd1/verif/scripts/test3.dump
+project/pd0/verif/scripts/run.macro
+project/pd0/verif/tests/test_pd.sv
+project/pd0/verif/tests/test_pd.sv
+project/pd0/verif/scripts/run.macro
