@@ -91,8 +91,7 @@ module decode #(
 
     //Decoding the opcodes
     always_comb begin : Decode
-        case(opcode):
-
+        case(opcode)
             //R-Type instructions
             7'b011_0011: begin
                 //slice instruction
@@ -112,7 +111,7 @@ module decode #(
                 funct3 = instruction[14:12];
                 rs1 = instruction[19:15];
                 rs2= 'd0;
-                case(funct3):
+                case(funct3)
                     //Remember, all sign extended unless otherwise noted
                     //ADDI, XORI, ORI, ANDI
                     3'h0,
@@ -129,7 +128,7 @@ module decode #(
                     to be able to establish the logical or airthmetic for right or left
                     */
                     3'h1: begin
-                        if(instruction[31:25]==0x00) begin
+                        if(instruction[31:25]=='h0) begin
                             shiftamt = instruction[24:20];
                             imm_reg = {{DWIDTH-12{0}},instruction[31:20]};
                             funct7 = instruction[31:25];
@@ -144,7 +143,7 @@ module decode #(
 
                     //Shift Right Logical and Shift Right Arithmetic
                     3'h5: begin
-                        if(instruction[31:25]==0x00 ||instruction[31:25]==0x20) begin
+                        if(instruction[31:25]=='h0 ||instruction[31:25]=='h20) begin
                             shiftamt = instruction[24:20];
                             imm_reg = {{DWIDTH-12{0}},instruction[31:20]};
                             funct7 = instruction[31:25];

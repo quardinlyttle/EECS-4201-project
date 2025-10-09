@@ -10,7 +10,9 @@
  * 2) 32-bit immediate value imm_o
  */
 
-module igen (
+module igen #(
+    parameter int DWIDTH = 32
+) (
     input logic [6:0] opcode_i,
     input logic [DWIDTH-1:0] insn_i,
     output logic [31:0] imm_o
@@ -20,15 +22,15 @@ module igen (
      * student below...
      */
 
-     //Noticed that the output for imm_o is not consisten for the DWIDTH. Might bring up later?
-     logic [DWIDTH-1:0] instruction, imm_reg;
-     logic [2:0] funct3;
-     assign instruction = insn_i;
-     assign imm_o = imm_reg;
-     assign funct3 = insn_i[14:12];
+    //Noticed that the output for imm_o is not consisten for the DWIDTH. Might bring up later?
+    logic [DWIDTH-1:0] instruction, imm_reg;
+    logic [2:0] funct3;
+    assign instruction = insn_i;
+    assign imm_o = imm_reg;
+    assign funct3 = insn_i[14:12];
 
     always_comb begin : immgen
-        case(opcode_i):
+        case(opcode_i)
 
             //R-Type instructions
             7'b011_0011: begin
@@ -37,7 +39,7 @@ module igen (
 
             //I-Type Instructions (except loads):
             7'b001_0011: begin
-                case(funct3):
+                case(funct3)
                     //Remember, all sign extended unless otherwise noted
                     //ADDI, XORI, ORI, ANDI
                     3'h0,
@@ -52,7 +54,7 @@ module igen (
                     to be able to establish the logical or airthmetic for right or left
                     */
                     3'h1: begin
-                        if(instruction[31:25]==0x00) begin
+                        if(instruction[31:25]=='h0) begin
                             imm_reg = {{DWIDTH-12{0}},instruction[31:20]};
                         end
                         else imm_reg = 'd0;
@@ -60,7 +62,7 @@ module igen (
 
                     //Shift Right Logical and Shift Right Arithmetic
                     3'h5: begin
-                        if(instruction[31:25]==0x00 ||instruction[31:25]==0x20) begin
+                        if(instruction[31:25]=='h0 ||instruction[31:25]=='h20) begin
                             imm_reg = {{DWIDTH-12{0}},instruction[31:20]};
                         end
                         else imm_reg = 'd0;
