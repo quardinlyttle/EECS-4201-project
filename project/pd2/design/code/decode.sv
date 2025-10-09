@@ -69,7 +69,12 @@ module decode #(
     assign rs1_o = rs1;
     assign rs2_o = rs2;
     assign rd_o = rd;
-    assign imm_o = imm_reg;
+    //assign imm_o = imm_reg;
+    /*Professor provided an update for the igen interface.
+    The immediate out for decode is the dummy one!
+    Leaving the logic in place for now and simply zeroing this output.
+    */
+    assign imm_o = 'd0;
     assign shamt_o = shiftamt;
 
     //Logic to accept new instructions and program counter as well as to reset.
@@ -89,7 +94,7 @@ module decode #(
         case(opcode):
 
             //R-Type instructions
-            7'b0110011: begin
+            7'b011_0011: begin
                 //slice instruction
                 //should we explicitly handle funct3 and 7 here or do it later in the ALU or control?
                 rd = instruction[11:7];
@@ -102,7 +107,7 @@ module decode #(
             end
 
             //I-Type Instructions (except loads):
-            7'0010011: begin
+            7'b001_0011: begin
                 rd = instruction[11:7];
                 funct3 = instruction[14:12];
                 rs1 = instruction[19:15];
@@ -152,14 +157,86 @@ module decode #(
 
             //Load instructions
             //Should we explcitily handle checking for funct3 and funct7 instead of simply slicing here?
+            //We'll handle it downstream for now.
             7'b000_0011: begin
                 rd = instruction[11:7];
                 funct3 = instruction[14:12];
                 rs1 = instruction[19:15];
                 rs2= 'd0;
                 funct7 ='d0;
+                shiftamt ='d0;
                 imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
             end
+
+            //Store Instructions
+            7'b010_0011: begin
+                rd = 'd0;
+                funct3 = instruction[14:12];
+                rs1 = instruction[19:15];
+                rs2= instruction[24:20];
+                funct7 ='d0;
+                shiftamt ='d0;
+                imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:25],instruction[11:7]};
+             end
+
+             //Branch Instructions
+             7'b110_0011: begin
+                rd = 'd0;
+                funct3 = instruction[14:12];
+                rs1 = instruction[19:15];
+                rs2= instruction[24:20];
+                funct7 ='d0;
+                shiftamt ='d0;
+                //Pay special attention to how Branch instructions are sliced!! 
+                imm_reg = {{DWIDTH-13{instruction[31]}}, instruction[31], instruction[7],instruction[30:25],instruction[11:8],1'b0};
+             end
+
+             //Jump and Link
+             7'b110_1111: begin
+                rd = instruction[11:7];
+                funct3 = 'd0;
+                rs1 = 'd0;
+                rs2= 'd0;
+                funct7 ='d0;
+                shiftamt ='d0;
+                //Another funky slicing, pay attention.
+                imm_reg = {{DWIDTH-21{instruction[31]}}, instruction[31],instruction[19:12],instruction[20],instruction[30:21],1'b0};
+             end
+
+             //Jump and Link Register
+             //Note: this uses the I Type format. Funct 3 is fixed to 0;
+             7'b110_0111: begin
+                rd = instruction[11:7];
+                funct3 = 0'd0;
+                rs1 = instruction[19:15];
+                rs2= 'd0;
+                funct7 ='d0;
+                shiftamt ='d0;
+                imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
+             end
+
+            //Load Upper Immedaite
+            7'b011_0111: begin
+                rd = instruction[11:7];
+                funct3 = 0'd0;
+                rs1 = 'd0;
+                rs2= 'd0;
+                funct7 ='d0;
+                shiftamt ='d0;
+                imm_reg = {{DWIDTH-20{instruction[31]}}, instruction[31:12]};
+            end
+
+            //Add Upper Immediate to PC
+            7'b001_0111: begin
+                rd = instruction[11:7];
+                funct3 = 0'd0;
+                rs1 = 'd0;
+                rs2= 'd0;
+                funct7 ='d0;
+                shiftamt ='d0;
+                imm_reg = {{DWIDTH-20{instruction[31]}}, instruction[31:12]};
+            end
+
             //Zero out everything on reset or unknown/invalid opcode
             default : begin
                 rd = 'd0;
