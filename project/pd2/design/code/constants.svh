@@ -13,4 +13,21 @@ parameter logic [31:0] ZERO = 32'd0;
  * Define constants as required...
  */
 
+//ALU Constants
+parameter logic [3:0] ADD =4'd0;
+parameter logic [3:0] SUB =4'd1;
+parameter logic [3:0] XOR =4'd2;
+parameter logic [3:0] OR  =4'd3;
+parameter logic [3:0] AND =4'd4;
+parameter logic [3:0] SLL =4'd5;
+parameter logic [3:0] SRL =4'd6;
+parameter logic [3:0] SRA =4'd7;
+parameter logic [3:0] SLT =4'd8;
+parameter logic [3:0] SLTU=4'd9;
+
+//Write Back Constants
+parameter logic [1:0] wbALU = 2'b00;
+parameter logic [1:0] wbMEM = 2'b01;
+parameter logic [1:0] wbPC  = 2'b10;
+
 `endif
