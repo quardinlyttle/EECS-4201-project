@@ -15,3 +15,4 @@ project/pd0/verif/scripts/run.macro
 project/pd0/verif/tests/test_pd.sv
 project/pd0/verif/tests/test_pd.sv
 project/pd0/verif/scripts/run.macro
+project/pd2/verif/scripts/package.vsim.pd2.Bleed_Red.tar.gz
