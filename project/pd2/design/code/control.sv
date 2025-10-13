@@ -58,8 +58,8 @@ always_comb begin : Control
             pcsel_o =   1'b0;
             immsel_o =  1'b0;
             regwren_o = 1'b1;
-            rs1sel_o =  1'b1;
-            rs2sel_o =  1'b1;
+            rs1sel_o =  1'b0;
+            rs2sel_o =  1'b0;
             memren_o =  1'b0;
             memwren_o = 1'b0;
 
@@ -131,8 +131,8 @@ always_comb begin : Control
                 pcsel_o =   1'b0;
                 immsel_o =  1'b1;
                 regwren_o = 1'b1;
-                rs1sel_o =  1'b1;
-                rs2sel_o =  1'b0;
+                rs1sel_o =  1'b0;
+                rs2sel_o =  1'b1;
                 memren_o =  1'b0;
                 memwren_o = 1'b0;
                 case(funct3_i)
@@ -174,8 +174,8 @@ always_comb begin : Control
                 pcsel_o =   1'b0;
                 immsel_o =  1'b1;
                 regwren_o = 1'b1;
-                rs1sel_o =  1'b1;
-                rs2sel_o =  1'b0;
+                rs1sel_o =  1'b0;
+                rs2sel_o =  1'b1;
                 memren_o =  1'b1;
                 memwren_o = 1'b0;
                 alusel_o = ADD;
@@ -187,10 +187,10 @@ always_comb begin : Control
                 pcsel_o =   1'b0;
                 immsel_o =  1'b1;
                 regwren_o = 1'b0;
-                rs1sel_o =  1'b1;
-                rs2sel_o =  1'b1;
+                rs1sel_o =  1'b0;
+                rs2sel_o =  1'b0;
                 memren_o =  1'b0;
-                memwren_o = 1'b0;
+                memwren_o = 1'b1;
                 alusel_o = ADD;
              end
 
@@ -200,8 +200,8 @@ always_comb begin : Control
                 pcsel_o =   1'b1;
                 immsel_o =  1'b1;
                 regwren_o = 1'b0;
-                rs1sel_o =  1'b1;
-                rs2sel_o =  1'b1;
+                rs1sel_o =  1'b0;
+                rs2sel_o =  1'b0;
                 memren_o =  1'b0;
                 memwren_o = 1'b0;
                 alusel_o =  ADD;
@@ -227,7 +227,7 @@ always_comb begin : Control
                 pcsel_o =   1'b1;
                 immsel_o =  1'b1;
                 regwren_o = 1'b1;
-                rs1sel_o =  1'b1;
+                rs1sel_o =  1'b0;
                 rs2sel_o =  1'b0;
                 memren_o =  1'b0;
                 memwren_o = 1'b0;
