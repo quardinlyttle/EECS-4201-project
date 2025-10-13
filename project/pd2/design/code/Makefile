@@ -4,7 +4,7 @@
 
 TESTBENCHES = decode_tb igen_tb control_tb
 DESIGN_SRCS = decode.sv igen.sv control.sv
-COMMON_SRCS = constants.svh
+#COMMON_SRCS = constants.svh
 WORK = work
 
 all: $(TESTBENCHES:%=run_%)

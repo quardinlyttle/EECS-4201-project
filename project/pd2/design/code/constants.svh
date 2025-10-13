@@ -29,5 +29,6 @@ parameter logic [3:0] SLTU=4'd9;
 parameter logic [1:0] wbALU = 2'b00;
 parameter logic [1:0] wbMEM = 2'b01;
 parameter logic [1:0] wbPC  = 2'b10;
+parameter logic [1:0] wbOFF  = 2'b11; //Gate writeback/turn it off
 
 `endif

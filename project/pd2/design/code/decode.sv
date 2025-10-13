@@ -74,10 +74,11 @@ module decode #(
     The immediate out for decode is the dummy one!
     Leaving the logic in place for now and simply zeroing this output.
     */
-    assign imm_o = 'd0;
+    //assign imm_o = 'd0;
     assign shamt_o = shiftamt;
 
     //Logic to accept new instructions and program counter as well as to reset.
+    /*
     always_ff @(posedge clk) begin
         if(rst) begin
             instruction <='d0;
@@ -88,6 +89,14 @@ module decode #(
             programcounter <= pc_i;
         end
     end
+    */
+
+    /*We will need to keep decode combinational for now
+    and maybe use the clock and reset for another part.
+    Likely for pipelining?
+    */
+    assign instruction = insn_i;
+    assign programcounter = pc_i;
 
     //Decoding the opcodes
     always_comb begin : Decode
