@@ -10,7 +10,9 @@
  * 2) 32-bit immediate value imm_o
  */
 
-module igen (
+module igen #(
+    parameter int DWIDTH=32
+    )(
     input logic [6:0] opcode_i,
     input logic [DWIDTH-1:0] insn_i,
     output logic [31:0] imm_o
