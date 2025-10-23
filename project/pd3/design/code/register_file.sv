@@ -33,9 +33,28 @@
      output logic [DWIDTH-1:0] rs2data_o
  );
 
-    /*
-     * Process definitions to be filled by
-     * student below...
-     */
+    // Register File - Memory Array
+    logic [DWIDTH-1:0] rf_registers [1:31]; // Don't initialize x0
+
+    // Combinational Read Logic
+    assign rs1data_o = (rs1_i == 5'b0) ? '0 : rf_registers[rs1_i];
+    assign rs2data_o = (rs2_i == 5'b0) ? '0 : rf_registers[rs2_i];
+
+    // Sequential Write Logic
+    always_ff @(posedge clk) begin : rf_write_logic
+        if (rst) begin
+            // Reset all registers to default predictable state
+            for (int i = 1; i<32; i++) begin
+                rf_registers[i] <= '0;
+            end
+
+        // Only write when enable is set
+        end else if (regwren_i) begin
+            // Ignore all writes to register x0 as per RV32 spec
+            if (rd_i != 5'b0) begin
+                rf_registers[rd_i] <= datawb_i;
+            end
+        end
+    end
 
 endmodule : register_file
