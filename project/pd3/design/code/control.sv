@@ -58,7 +58,7 @@ module control #(
     always_comb begin : Control
         case(opcode_i)
             //R Type
-            7'b011_0011: begin
+            RTYPE: begin
                 wbsel_o =   wbALU;
                 pcsel_o =   1'b0;
                 immsel_o =  1'b0;
@@ -131,7 +131,7 @@ module control #(
             end
 
             //I-Type Instructions (except loads):
-            7'b001_0011: begin
+            ITYPE: begin
                 wbsel_o =   wbALU;
                 pcsel_o =   1'b0;
                 immsel_o =  1'b1;
@@ -173,7 +173,7 @@ module control #(
 
             //Load instructions
             //Explicitly handle funct3 and funct7
-            7'b000_0011: begin
+            LOAD: begin
                 wbsel_o =   wbMEM;
                 pcsel_o =   1'b0;
                 immsel_o =  1'b1;
@@ -186,7 +186,7 @@ module control #(
             end
 
             //Store Instructions
-            7'b010_0011: begin
+            STORE: begin
                 wbsel_o =   wbOFF;
                 pcsel_o =   1'b0;
                 immsel_o =  1'b1;
@@ -199,7 +199,7 @@ module control #(
             end
 
             //Branch Instructions
-            7'b110_0011: begin
+            BRANCH: begin
                 wbsel_o =   wbOFF;
                 pcsel_o =   1'b1;
                 immsel_o =  1'b1;
@@ -212,7 +212,7 @@ module control #(
             end
 
             //Jump and Link
-            7'b110_1111: begin
+            JAL: begin
                 wbsel_o =   wbOFF;
                 pcsel_o =   1'b1;
                 immsel_o =  1'b1;
@@ -226,7 +226,7 @@ module control #(
 
             //Jump and Link Register
             //Note: this uses the I Type format. Funct 3 is fixed to 0;
-            7'b110_0111: begin
+            JALR: begin
                 wbsel_o =   wbOFF;
                 pcsel_o =   1'b1;
                 immsel_o =  1'b1;
@@ -239,7 +239,7 @@ module control #(
             end
 
             //Load Upper Immedaite
-            7'b011_0111: begin
+            LUI: begin
                 wbsel_o =   wbOFF;
                 pcsel_o =   1'b0;
                 immsel_o =  1'b1;
@@ -252,7 +252,7 @@ module control #(
             end
 
             //Add Upper Immediate to PC
-            7'b001_0111: begin
+            AUIPC: begin
                 wbsel_o =   wbOFF;
                 pcsel_o =   1'b1;
                 immsel_o =  1'b1;

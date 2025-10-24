@@ -31,4 +31,15 @@ parameter logic [1:0] wbMEM = 2'b01;
 parameter logic [1:0] wbPC  = 2'b10;
 parameter logic [1:0] wbOFF  = 2'b11; //Gate writeback/turn it off
 
+//Instruction Types Opcodes
+parameter logic [6:0] RTYPE = 7'b011_0011;
+parameter logic [6:0] ITYPE = 7'b001_0011;
+parameter logic [6:0] LOAD = 7'b000_0011;
+parameter logic [6:0] STORE = 7'b010_0011;
+parameter logic [6:0] BRANCH = 7'b110_0011;
+parameter logic [6:0] JAL = 7'b110_1111;
+parameter logic [6:0] JALR = 7'b110_0111;
+parameter logic [6:0] LUI = 7'b011_0111;
+parameter logic [6:0] AUIPC = 7'b001_0111;
+
 `endif
