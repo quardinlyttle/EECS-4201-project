@@ -102,7 +102,7 @@ module decode #(
     always_comb begin : Decode
         case(opcode)
             //R-Type instructions
-            7'b011_0011: begin
+            RTYPE: begin
                 //slice instruction
                 //should we explicitly handle funct3 and 7 here or do it later in the ALU or control?
                 rd = instruction[11:7];
@@ -115,7 +115,7 @@ module decode #(
             end
 
             //I-Type Instructions (except loads):
-            7'b001_0011: begin
+            ITYPE: begin
                 rd = instruction[11:7];
                 funct3 = instruction[14:12];
                 rs1 = instruction[19:15];
@@ -182,7 +182,7 @@ module decode #(
             //Load instructions
             //Should we explcitily handle checking for funct3 and funct7 instead of simply slicing here?
             //We'll handle it downstream for now.
-            7'b000_0011: begin
+            LOAD: begin
                 rd = instruction[11:7];
                 funct3 = instruction[14:12];
                 rs1 = instruction[19:15];
@@ -193,7 +193,7 @@ module decode #(
             end
 
             //Store Instructions
-            7'b010_0011: begin
+            STORE: begin
                 rd = 'd0;
                 funct3 = instruction[14:12];
                 rs1 = instruction[19:15];
@@ -204,7 +204,7 @@ module decode #(
              end
 
              //Branch Instructions
-             7'b110_0011: begin
+             BRANCH: begin
                 rd = 'd0;
                 funct3 = instruction[14:12];
                 rs1 = instruction[19:15];
@@ -216,7 +216,7 @@ module decode #(
              end
 
              //Jump and Link
-             7'b110_1111: begin
+             JAL: begin
                 rd = instruction[11:7];
                 funct3 = 'd0;
                 rs1 = 'd0;
@@ -229,7 +229,7 @@ module decode #(
 
              //Jump and Link Register
              //Note: this uses the I Type format. Funct 3 is fixed to 0;
-             7'b110_0111: begin
+             JALR: begin
                 rd = instruction[11:7];
                 funct3 = 'd0;
                 rs1 = instruction[19:15];
@@ -240,7 +240,7 @@ module decode #(
              end
 
             //Load Upper Immedaite
-            7'b011_0111: begin
+            LUI: begin
                 rd = instruction[11:7];
                 funct3 = 'd0;
                 rs1 = 'd0;
@@ -251,7 +251,7 @@ module decode #(
             end
 
             //Add Upper Immediate to PC
-            7'b001_0111: begin
+            AUIPC: begin
                 rd = instruction[11:7];
                 funct3 = 'd0;
                 rs1 = 'd0;

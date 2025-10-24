@@ -221,7 +221,7 @@ module control #(
                 rs2sel_o =  1'b0;
                 memren_o =  1'b0;
                 memwren_o = 1'b0;
-                alusel_o = ADD;
+                alusel_o = PCADD;
             end
 
             //Jump and Link Register

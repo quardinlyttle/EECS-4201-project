@@ -24,6 +24,7 @@ parameter logic [3:0] SRL =4'd6;
 parameter logic [3:0] SRA =4'd7;
 parameter logic [3:0] SLT =4'd8;
 parameter logic [3:0] SLTU=4'd9;
+parameter logic [3:0] PCADD =4'd10;
 
 //Write Back Constants
 parameter logic [1:0] wbALU = 2'b00;
