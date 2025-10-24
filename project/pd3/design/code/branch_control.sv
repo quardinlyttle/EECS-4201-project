@@ -27,11 +27,27 @@
     output logic breq_o,
     output logic brlt_o
 );
+    logic breq, brlt, brlt_signed, brlt_unsigned, enableBrOutput;
 
-    /*
-     * Process definitions to be filled by
-     * student below...
-     */
+    // Branch Equal
+    assign breq = (rs1_i == rs2_i);
+
+    // Branch Less Than (Unsigned)
+    assign brlt_unsigned = unsigned'(rs1_i) < unsigned'(rs2_i);
+
+    // Branch Less Than (Signed)
+    assign brlt_signed = signed'(rs1_i) < signed'(rs2_i);
+
+    // Choose between signed and unsigned brlt depending
+    // on funct3 (h6 and h7 are unsigned)
+    assign brlt = (funct3_i == 3'h6 || funct3_i == 3'h7) ?
+                            brlt_unsigned : brlt_signed;
+
+    // Check if opcode is branching type
+    assign enableBrOutput = (opcode_i == 7'b1100011);
+
+    // Output result
+    assign breq_o = (enableBrOutput) ? breq : 1'b0;
+    assign brlt_o = (enableBrOutput) ? brlt : 1'b0;
 
 endmodule : branch_control
-
