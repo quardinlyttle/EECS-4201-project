@@ -182,8 +182,8 @@ module pd3 #(
         .rd_i       (RF_RD_I),
         .datawb_i   (RF_DATAWB_I),
         .regwren_i  (RF_REGWREN_I),
-        .rs1data_o  (),
-        .rs2data_o  ()
+        .rs1data_o  (RF_RS1DATA_O),
+        .rs2data_o  (RF_RS2DATA_O)
     );
     assign RF_RS1_I         = DECODE_RS1_O;
     assign RF_RS2_I         = DECODE_RS2_O;
