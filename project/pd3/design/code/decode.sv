@@ -98,181 +98,198 @@ module decode #(
     assign instruction = insn_i;
     assign programcounter = pc_i;
 
-    //Decoding the opcodes
-    always_comb begin : Decode
-        case(opcode)
-            //R-Type instructions
-            RTYPE: begin
-                //slice instruction
-                //should we explicitly handle funct3 and 7 here or do it later in the ALU or control?
-                rd = instruction[11:7];
-                funct3 = instruction[14:12];
-                rs1 = instruction[19:15];
-                rs2 = instruction[24:20];
-                funct7 = instruction[31:25];
-                shiftamt ='d0;
-                imm_reg = 'd0;
-            end
-
-            //I-Type Instructions (except loads):
-            ITYPE: begin
-                rd = instruction[11:7];
-                funct3 = instruction[14:12];
-                rs1 = instruction[19:15];
-                rs2= 'd0;
-                case(funct3)
-                    //Remember, all sign extended unless otherwise noted
-                    //ADDI, XORI, ORI, ANDI
-                    3'h0,
-                    3'h4,
-                    3'h6,
-                    3'h7: begin
-                        imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
-                        shiftamt ='d0;
-                        funct7 ='d0;
-                    end
-
-                    //Shift logical left
-                    /*Note, I am passing on the values of the immediate for the ALU or control
-                    to be able to establish the logical or airthmetic for right or left
-                    */
-                    3'h1: begin
-                        if(instruction[31:25]=='h0) begin
-                            shiftamt = instruction[24:20];
-                            imm_reg = {{DWIDTH-12{0}},instruction[31:20]};
-                            funct7 = instruction[31:25];
-                        end
-                        //catch possible errors?
-                        else begin
-                            shiftamt = 'd0;
-                            imm_reg = 'd0;
-                            funct7 = 'd0;
-                        end
-                    end
-
-                    //Shift Right Logical and Shift Right Arithmetic
-                    3'h5: begin
-                        if(instruction[31:25]=='h0 ||instruction[31:25]=='h20) begin
-                            shiftamt = instruction[24:20];
-                            imm_reg = {{DWIDTH-12{0}},instruction[31:20]};
-                            funct7 = instruction[31:25];
-                        end
-                        else begin
-                            shiftamt = 'd0;
-                            imm_reg = 'd0;
-                            funct7 = 'd0;
-                        end
-                    end
-
-                    //Set Less Than (signed and unsigned)
-                    3'h2,
-                    3'h3: begin
-                        imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
-                        funct7 = 'd0;
-                    end
-
-                    default: begin
-                        imm_reg='d0;
-                        shiftamt ='d0;
-                    end
-                endcase
-
-            end
-
-            //Load instructions
-            //Should we explcitily handle checking for funct3 and funct7 instead of simply slicing here?
-            //We'll handle it downstream for now.
-            LOAD: begin
-                rd = instruction[11:7];
-                funct3 = instruction[14:12];
-                rs1 = instruction[19:15];
-                rs2= 'd0;
-                funct7 ='d0;
-                shiftamt ='d0;
-                imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
-            end
-
-            //Store Instructions
-            STORE: begin
-                rd = 'd0;
-                funct3 = instruction[14:12];
-                rs1 = instruction[19:15];
-                rs2= instruction[24:20];
-                funct7 ='d0;
-                shiftamt ='d0;
-                imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:25],instruction[11:7]};
-             end
-
-             //Branch Instructions
-             BRANCH: begin
-                rd = 'd0;
-                funct3 = instruction[14:12];
-                rs1 = instruction[19:15];
-                rs2= instruction[24:20];
-                funct7 ='d0;
-                shiftamt ='d0;
-                //Pay special attention to how Branch instructions are sliced!!
-                imm_reg = {{DWIDTH-13{instruction[31]}}, instruction[31], instruction[7],instruction[30:25],instruction[11:8],1'b0};
-             end
-
-             //Jump and Link
-             JAL: begin
-                rd = instruction[11:7];
-                funct3 = 'd0;
-                rs1 = 'd0;
-                rs2= 'd0;
-                funct7 ='d0;
-                shiftamt ='d0;
-                //Another funky slicing, pay attention.
-                imm_reg = {{DWIDTH-21{instruction[31]}}, instruction[31],instruction[19:12],instruction[20],instruction[30:21],1'b0};
-             end
-
-             //Jump and Link Register
-             //Note: this uses the I Type format. Funct 3 is fixed to 0;
-             JALR: begin
-                rd = instruction[11:7];
-                funct3 = 'd0;
-                rs1 = instruction[19:15];
-                rs2= 'd0;
-                funct7 ='d0;
-                shiftamt ='d0;
-                imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
-             end
-
-            //Load Upper Immedaite
-            LUI: begin
-                rd = instruction[11:7];
-                funct3 = 'd0;
-                rs1 = 'd0;
-                rs2= 'd0;
-                funct7 ='d0;
-                shiftamt ='d0;
-                imm_reg = {instruction[31:12],12'b0};
-            end
-
-            //Add Upper Immediate to PC
-            AUIPC: begin
-                rd = instruction[11:7];
-                funct3 = 'd0;
-                rs1 = 'd0;
-                rs2= 'd0;
-                funct7 ='d0;
-                shiftamt ='d0;
-                imm_reg = {instruction[31:12],12'b0};
-            end
-
-            //Zero out everything on reset or unknown/invalid opcode
-            default : begin
-                rd = 'd0;
-                funct3 = 'd0;
-                rs1 = 'd0;
-                rs2 = 'd0;
-                funct7 = 'd0;
-                shiftamt ='d0;
-                imm_reg = 'd0;
-
-            end
-        endcase
+    //Slicing at all times
+    always_comb begin
+    rd = instruction[11:7];
+    rs1 = instruction[19:15];
+    rs2 = instruction[24:20];
+    funct3 = instruction[14:12];
+    funct7 = instruction[31:25];
+    imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
+    shiftamt = instruction[24:20];
     end
+    
+
+    // //Decoding the opcodes
+    // always_comb begin : Decode
+    //     case(opcode)
+    //         //R-Type instructions
+    //         RTYPE: begin
+    //             //slice instruction
+    //             //should we explicitly handle funct3 and 7 here or do it later in the ALU or control?
+    //             rd = instruction[11:7];
+    //             funct3 = instruction[14:12];
+    //             rs1 = instruction[19:15];
+    //             rs2 = instruction[24:20];
+    //             funct7 = instruction[31:25];
+    //             shiftamt ='d0;
+    //             imm_reg = 'd0;
+    //         end
+
+    //         //I-Type Instructions (except loads):
+    //         ITYPE: begin
+    //             rd = instruction[11:7];
+    //             funct3 = instruction[14:12];
+    //             rs1 = instruction[19:15];
+    //             //rs2= 'd0;
+    //             //TODO: For some reason the profs test pattern doesnt like 0 for this
+    //             rs2 = instruction[24:20];
+    //             case(funct3)
+    //                 //Remember, all sign extended unless otherwise noted
+    //                 //ADDI, XORI, ORI, ANDI
+    //                 3'h0,
+    //                 3'h4,
+    //                 3'h6,
+    //                 3'h7: begin
+    //                     imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
+    //                     shiftamt ='d0;
+    //                     //funct7 ='d0;
+    //                     //TODO: For some reason the profs test pattern doesnt like 0 for this
+    //                     funct7 = instruction[31:25];
+    //                 end
+
+    //                 //Shift logical left
+    //                 /*Note, I am passing on the values of the immediate for the ALU or control
+    //                 to be able to establish the logical or airthmetic for right or left
+    //                 */
+    //                 3'h1: begin
+    //                     if(instruction[31:25]=='h0) begin
+    //                         shiftamt = instruction[24:20];
+    //                         imm_reg = {{DWIDTH-12{0}},instruction[31:20]};
+    //                         funct7 = instruction[31:25];
+    //                     end
+    //                     //catch possible errors?
+    //                     else begin
+    //                         shiftamt = 'd0;
+    //                         imm_reg = 'd0;
+    //                         funct7 = 'd0;
+    //                     end
+    //                 end
+
+    //                 //Shift Right Logical and Shift Right Arithmetic
+    //                 3'h5: begin
+    //                     if(instruction[31:25]=='h0 ||instruction[31:25]=='h20) begin
+    //                         shiftamt = instruction[24:20];
+    //                         imm_reg = {{DWIDTH-12{0}},instruction[31:20]};
+    //                         funct7 = instruction[31:25];
+    //                     end
+    //                     else begin
+    //                         shiftamt = 'd0;
+    //                         imm_reg = 'd0;
+    //                         funct7 = 'd0;
+    //                     end
+    //                 end
+
+    //                 //Set Less Than (signed and unsigned)
+    //                 3'h2,
+    //                 3'h3: begin
+    //                     imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
+    //                     funct7 = 'd0;
+    //                 end
+
+    //                 default: begin
+    //                     imm_reg='d0;
+    //                     shiftamt ='d0;
+    //                 end
+    //             endcase
+
+    //         end
+
+    //         //Load instructions
+    //         //Should we explcitily handle checking for funct3 and funct7 instead of simply slicing here?
+    //         //We'll handle it downstream for now.
+    //         LOAD: begin
+    //             rd = instruction[11:7];
+    //             funct3 = instruction[14:12];
+    //             rs1 = instruction[19:15];
+    //             rs2= 'd0;
+    //             funct7 ='d0;
+    //             shiftamt ='d0;
+    //             imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
+    //         end
+
+    //         //Store Instructions
+    //         STORE: begin
+    //             //rd = 'd0;
+    //             rd = instruction[11:7];
+    //             funct3 = instruction[14:12];
+    //             rs1 = instruction[19:15];
+    //             rs2= instruction[24:20];
+    //             funct7 ='d0;
+    //             shiftamt ='d0;
+    //             imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:25],instruction[11:7]};
+    //          end
+
+    //          //Branch Instructions
+    //          BRANCH: begin
+    //             rd = 'd0;
+    //             funct3 = instruction[14:12];
+    //             rs1 = instruction[19:15];
+    //             rs2= instruction[24:20];
+    //             funct7 ='d0;
+    //             shiftamt ='d0;
+    //             //Pay special attention to how Branch instructions are sliced!!
+    //             imm_reg = {{DWIDTH-13{instruction[31]}}, instruction[31], instruction[7],instruction[30:25],instruction[11:8],1'b0};
+    //          end
+
+    //          //Jump and Link
+    //          JAL: begin
+    //             rd = instruction[11:7];
+    //             funct3 = 'd0;
+    //             rs1 = 'd0;
+    //             rs2= 'd0;
+    //             funct7 ='d0;
+    //             shiftamt ='d0;
+    //             //Another funky slicing, pay attention.
+    //             imm_reg = {{DWIDTH-21{instruction[31]}}, instruction[31],instruction[19:12],instruction[20],instruction[30:21],1'b0};
+    //          end
+
+    //          //Jump and Link Register
+    //          //Note: this uses the I Type format. Funct 3 is fixed to 0;
+    //          JALR: begin
+    //             rd = instruction[11:7];
+    //             funct3 = 'd0;
+    //             rs1 = instruction[19:15];
+    //             rs2= 'd0;
+    //             funct7 ='d0;
+    //             shiftamt ='d0;
+    //             imm_reg = {{DWIDTH-12{instruction[31]}}, instruction[31:20]};
+    //          end
+
+    //         //Load Upper Immedaite
+    //         LUI: begin
+    //             rd = instruction[11:7];
+    //             funct3 = 'd0;
+    //             rs1 = 'd0;
+    //             rs2= 'd0;
+    //             funct7 ='d0;
+    //             shiftamt ='d0;
+    //             imm_reg = {instruction[31:12],12'b0};
+    //         end
+
+    //         //Add Upper Immediate to PC
+    //         AUIPC: begin
+    //             rd = instruction[11:7];
+    //             funct3 = 'd0;
+    //             rs1 = 'd0;
+    //             rs2= 'd0;
+    //             funct7 ='d0;
+    //             shiftamt ='d0;
+    //             imm_reg = {instruction[31:12],12'b0};
+    //         end
+
+    //         //Zero out everything on reset or unknown/invalid opcode
+    //         default : begin
+    //             rd = 'd0;
+    //             funct3 = 'd0;
+    //             rs1 = 'd0;
+    //             rs2 = 'd0;
+    //             funct7 = 'd0;
+    //             shiftamt ='d0;
+    //             imm_reg = 'd0;
+
+    //         end
+    //     endcase
+    // end
 
 endmodule : decode

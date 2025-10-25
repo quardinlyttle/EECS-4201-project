@@ -48,8 +48,8 @@ module alu #(
         SLL: res_o = rs1_i << rs2_i;
         SRL: res_o = rs1_i >> rs2_i;
         SRA: res_o = rs1_i >>> rs2_i;
-        SLT: res_o = (rs1 < rs2) ? 1:0;
-        SLTU: res_o = ($unsigned(rs1) < $unsigned(rs2)) ? 1:0;
+        SLT: res_o = (rs1_i < rs2_i) ? 1:0;
+        SLTU: res_o = ($unsigned(rs1_i) < $unsigned(rs2_i)) ? 1:0;
         PCADD: res_o = pc_i + rs2_i;
 
         default: res_o = 'd0;

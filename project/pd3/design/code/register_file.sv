@@ -44,9 +44,11 @@
     always_ff @(posedge clk) begin : rf_write_logic
         if (rst) begin
             // Reset all registers to default predictable state
-            for (int i = 1; i<32; i++) begin
+            for (int i = 3; i<32; i++) begin
                 rf_registers[i] <= '0;
             end
+            rf_registers[1]<='0;
+            rf_registers[2]<='h01100000;
 
         // Only write when enable is set
         end else if (regwren_i) begin

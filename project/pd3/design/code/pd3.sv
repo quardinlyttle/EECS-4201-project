@@ -28,7 +28,7 @@ module pd3 #(
     logic               CTRL_RS1SEL_O;
     logic               CTRL_RS2SEL_O;
     logic               CTRL_MEMREN_O;
-    logic               CTRL_MEMWREN_O
+    logic               CTRL_MEMWREN_O;
     logic [1:0]         CTRL_WBSEL_O;
     logic [3:0]         CTRL_ALUSEL_O;
 
@@ -79,6 +79,16 @@ module pd3 #(
     // RF Outputs
     logic [DWIDTH-1:0]  RF_RS1DATA_O;
     logic [DWIDTH-1:0]  RF_RS2DATA_O;
+
+    // ======= ALU =======
+    // ALU Inputs
+    logic [AWIDTH-1:0] ALU_PC_I;
+    logic [DWIDTH-1:0] ALU_RS1_I;
+    logic [DWIDTH-1:0] ALU_RS2_I;
+    logic [3:0]        ALU_SEL_I;
+    // ALU Outputs
+    logic [DWIDTH-1:0] ALU_RES_O;
+    logic              ALU_BRTAKEN_O;
 
     // ============================================
     // ============= RV32 MAIN BLOCKS =============
@@ -159,12 +169,13 @@ module pd3 #(
     // Assign Decode Inputs
     assign DECODE_INSN_I    = FETCH_INSN_O;
     assign DECODE_PC_I      = FETCH_PC_O;
+    assign DECODE_IMM_O     = IGEN_IMM_O;
 
     // =========== IMMEDIATE GENERATOR ===========
     igen igen_i(
         .opcode_i   (IGEN_OPCODE_I),
         .insn_i     (IGEN_INSN_I),
-        .imm_o      (IGEN_IMM_O),
+        .imm_o      (IGEN_IMM_O)
     );
     // Assign Igen Inputs
     assign IGEN_OPCODE_I    = DECODE_OPCODE_O;
@@ -175,7 +186,7 @@ module pd3 #(
         .DWIDTH(DWIDTH)
     ) register_file_i (
         .clk        (clk),
-        .rst        (rst),
+        .rst        (reset),
 
         .rs1_i      (RF_RS1_I),
         .rs2_i      (RF_RS2_I),
@@ -185,6 +196,7 @@ module pd3 #(
         .rs1data_o  (RF_RS1DATA_O),
         .rs2data_o  (RF_RS2DATA_O)
     );
+    //Assign Register File Inputs
     assign RF_RS1_I         = DECODE_RS1_O;
     assign RF_RS2_I         = DECODE_RS2_O;
     assign RF_RD_I          = DECODE_RD_O;
@@ -192,5 +204,22 @@ module pd3 #(
     assign RF_REGWREN_I     = 1'b0;
 
     // =========== EXECUTE ===========
+    alu #(
+        .DWIDTH(DWIDTH),
+        .AWIDTH(AWIDTH)
+    )alu_e(
+        .pc_i       (ALU_PC_I),
+        .rs1_i      (ALU_RS1_I),
+        .rs2_i      (ALU_RS2_I),
+        .alusel_i   (ALU_SEL_I),
+        .res_o      (ALU_RES_O),
+        .brtaken_o  (ALU_BRTAKEN_O)
+    );
+    //Assign ALU inputs
+    assign ALU_PC_I     = DECODE_PC_O;
+    assign ALU_RS1_I    = RF_RS1DATA_O;
+    assign ALU_RS2_I    = (CTRL_IMMSEL_O == 0)? RF_RS2DATA_O : IGEN_IMM_O;
+    assign ALU_SEL_I    = CTRL_ALUSEL_O;
+
 
 endmodule : pd3
