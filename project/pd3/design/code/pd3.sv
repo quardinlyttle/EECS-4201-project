@@ -71,6 +71,7 @@ module pd3 #(
     logic               MEM_WRITE_EN_I;
     // Memory Outputs
     logic [DWIDTH-1:0]  MEM_DATA_O;
+    logic               MEM_DATA_VLD_O;
 
     // ======= REGISTER FILE =======
     // RF Inputs
@@ -85,13 +86,23 @@ module pd3 #(
 
     // ======= ALU =======
     // ALU Inputs
-    logic [AWIDTH-1:0] ALU_PC_I;
-    logic [DWIDTH-1:0] ALU_RS1_I;
-    logic [DWIDTH-1:0] ALU_RS2_I;
-    logic [3:0]        ALU_SEL_I;
+    logic [AWIDTH-1:0]  ALU_PC_I;
+    logic [DWIDTH-1:0]  ALU_RS1_I;
+    logic [DWIDTH-1:0]  ALU_RS2_I;
+    logic [3:0]         ALU_SEL_I;
     // ALU Outputs
-    logic [DWIDTH-1:0] ALU_RES_O;
-    logic              ALU_BRTAKEN_O;
+    logic [DWIDTH-1:0]  ALU_RES_O;
+    logic               ALU_BRTAKEN_O;
+
+    // ======= Branch Comparator =======
+    // BC Inputs
+    logic               BC_OPCODE_I;
+    logic               BC_FUNCT3_I;
+    logic [DWIDTH-1:0]  BC_RS1_I;
+    logic [DWIDTH-1:0]  BC_RS2_I;
+    // BC Outputs
+    logic               BC_BREQ_O;
+    logic               BC_BRLT_O;
 
     // ============================================
     // ============= RV32 MAIN BLOCKS =============
@@ -144,7 +155,8 @@ module pd3 #(
         .read_en_i  (MEM_READ_EN_I),
         .write_en_i (MEM_WRITE_EN_I),
 
-        .data_o     (MEM_DATA_O)
+        .data_o     (MEM_DATA_O),
+        .data_vld_o (MEM_DATA_VLD_O)
     );
     // Assign Instruction Memory Inputs
     assign MEM_ADDR_I       = DECODE_PC_O;
@@ -194,18 +206,47 @@ module pd3 #(
         .rs1_i      (RF_RS1_I),
         .rs2_i      (RF_RS2_I),
         .rd_i       (RF_RD_I),
-        //.datawb_i   (RF_DATAWB_I),
-        .datawb_i   ('d0),
+        .datawb_i   (RF_DATAWB_I),
         .regwren_i  (RF_REGWREN_I),
         .rs1data_o  (RF_RS1DATA_O),
         .rs2data_o  (RF_RS2DATA_O)
     );
-    //Assign Register File Inputs
+    // Assign Register File Inputs
     assign RF_RS1_I         = DECODE_RS1_O;
     assign RF_RS2_I         = DECODE_RS2_O;
     assign RF_RD_I          = DECODE_RD_O;
-    ///assign RF_DATAWB_I      = ALU_RES_O;
+    // assign RF_DATAWB_I      = ALU_RES_O;
+    assign RF_DATAWB_I      = 'd0;
     assign RF_REGWREN_I     = CTRL_REGWREN_O;
+
+    // =========== Branch Comparator ===========
+    branch_control branching(
+        .opcode_i(DECODE_OPCODE_O),
+        .funct3_i(DECODE_FUNCT3_O),
+        .rs1_i(RF_RS1DATA_O),
+        .rs2_i(RF_RS2DATA_O),
+        .breq_o(BC_BREQ_O),
+        .brlt_o(BC_BRLT_O)
+    );
+    // BC Input Assignments
+    assign BC_OPCODE_I      = DECODE_OPCODE_O;
+    assign BC_FUNCT3_I      = DECODE_FUNCT3_O;
+    assign BC_RS1_I         = RF_RS1DATA_O;
+    assign BC_RS2_I         = RF_RS2DATA_O;
+
+    // Branch Taken Computation
+    always_comb begin: BRANCHER
+        if(DECODE_OPCODE_O==BRANCH) begin
+            case(DECODE_FUNCT3_O)
+            'h0: ALU_BRTAKEN_O = BC_BREQ_O;
+            'h1: ALU_BRTAKEN_O = ~BC_BREQ_O;
+            'h4, 'h6: ALU_BRTAKEN_O = BC_BRLT_O;
+            'h5, 'h7: ALU_BRTAKEN_O = ~BC_BRLT_O;
+            default: ALU_BRTAKEN_O = 'd0;
+            endcase
+        end
+        else ALU_BRTAKEN_O = 'd0;
+    end
 
     // =========== EXECUTE ===========
     alu #(
@@ -213,19 +254,18 @@ module pd3 #(
         .AWIDTH(AWIDTH)
     )alu_e(
         .pc_i       (ALU_PC_I),
-        .opcode_i   (DECODE_OPCODE_O),
         .funct3_i   (DECODE_FUNCT3_O),
         .funct7_i   (DECODE_FUNCT7_O),
         .rs1_i      (ALU_RS1_I),
         .rs2_i      (ALU_RS2_I),
         .alusel_i   (ALU_SEL_I),
         .res_o      (ALU_RES_O),
-        .brtaken_o  (ALU_BRTAKEN_O)
+        .brtaken_o  (ALU_BRTAKEN_O) // Dummy
     );
-    //Assign ALU inputs
+    // Assign ALU inputs
     assign ALU_PC_I     = DECODE_PC_O;
     assign ALU_RS1_I    = RF_RS1DATA_O;
-    assign ALU_RS2_I    = (CTRL_RS2SEL_O == 1)? RF_RS2DATA_O : IGEN_IMM_O;
+    assign ALU_RS2_I    = (CTRL_IMMSEL_O)? IGEN_IMM_O : RF_RS2DATA_O;
     assign ALU_SEL_I    = CTRL_ALUSEL_O;
 
     /*

@@ -25,7 +25,6 @@ module alu #(
     input logic [AWIDTH-1:0] pc_i,
     input logic [DWIDTH-1:0] rs1_i,
     input logic [DWIDTH-1:0] rs2_i,
-    input logic [6:0] opcode_i,
     input logic [2:0] funct3_i,
     input logic [6:0] funct7_i,
     /* We are going to be using the alusel_i from decode*/
@@ -33,12 +32,6 @@ module alu #(
     output logic [DWIDTH-1:0] res_o,
     output logic brtaken_o
 );
-
-    /*
-     * Process definitions to be filled by
-     * student below...
-     */
-    //assign brtaken_o = 1'b0;
     always_comb begin: ALU
         case(alusel_i)
         ADD: res_o = rs1_i + rs2_i;
@@ -49,7 +42,7 @@ module alu #(
         SLL: res_o = rs1_i << rs2_i;
         SRL: res_o = rs1_i >> rs2_i;
         SRA: res_o = rs1_i >>> rs2_i;
-        SLT: res_o = (rs1_i < rs2_i) ? 1:0;
+        SLT:  res_o = ($signed(rs1_i) < $signed(rs2_i)) ? 1 : 0;
         SLTU: res_o = ($unsigned(rs1_i) < $unsigned(rs2_i)) ? 1:0;
         PCADD: res_o = pc_i + rs2_i;
 
@@ -57,27 +50,7 @@ module alu #(
         endcase
     end
 
-    logic brequal,brlt;
-    branch_control branching(
-        .opcode_i(opcode_i),
-        .funct3_i(funct3_i),
-        .rs1_i(rs1_i),
-        .rs2_i(rs2_i),
-        .breq_o(brequal),
-        .brlt_o(brlt)
-    );
-    always_comb begin: BRANCHER
-        if(opcode_i==BRANCH) begin
-            case(funct3_i)
-            'h0: brtaken_o = brequal;
-            'h1: brtaken_o = ~brequal;
-            'h4, 'h6: brtaken_o = brlt;
-            'h5, 'h7: brtaken_o = ~brlt;
-            default: brtaken_o = 'd0;
-            endcase
-        end
-        else brtaken_o = 'd0;
-
-    end
+    // Dummy output signal, branch taken is calculated in top level
+    assign brtaken_o = 1'b0;
 
 endmodule : alu

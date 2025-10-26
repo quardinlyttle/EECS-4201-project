@@ -2,8 +2,8 @@
 # ModelSim Multi-TB Makefile
 # =====================
 
-TESTBENCHES = register_file_tb branch_control_tb
-DESIGN_SRCS = register_file.sv branch_control.sv
+TESTBENCHES = register_file_tb branch_control_tb execute_tb
+DESIGN_SRCS = register_file.sv branch_control.sv execute.sv
 COMMON_SRCS = constants.svh
 WORK = work
 
