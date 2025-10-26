@@ -18,7 +18,11 @@ module pd3 #(
     input logic reset
 );
 
-    // ======= CONTROL =======
+    // ============================================
+    // ============== MODULE SIGNALS ==============
+    // ============================================
+
+    // ======= CONTROL SIGNALS =======
     // Control Inputs
     logic [DWIDTH-1:0]  CTRL_INSN_I;
     logic [6:0]         CTRL_OPCODE_I;
@@ -73,7 +77,7 @@ module pd3 #(
     logic [DWIDTH-1:0]  MEM_DATA_O;
     logic               MEM_DATA_VLD_O;
 
-    // ======= REGISTER FILE =======
+    // ======= REGISTER FILE SIGNALS =======
     // RF Inputs
     logic [4:0]         RF_RS1_I;
     logic [4:0]         RF_RS2_I;
@@ -84,7 +88,7 @@ module pd3 #(
     logic [DWIDTH-1:0]  RF_RS1DATA_O;
     logic [DWIDTH-1:0]  RF_RS2DATA_O;
 
-    // ======= ALU =======
+    // ======= ALU SIGNALS =======
     // ALU Inputs
     logic [AWIDTH-1:0]  ALU_PC_I;
     logic [DWIDTH-1:0]  ALU_RS1_I;
@@ -94,7 +98,7 @@ module pd3 #(
     logic [DWIDTH-1:0]  ALU_RES_O;
     logic               ALU_BRTAKEN_O;
 
-    // ======= Branch Comparator =======
+    // ======= BRANCH COMPARATOR SIGNALS =======
     // BC Inputs
     logic               BC_OPCODE_I;
     logic               BC_FUNCT3_I;
@@ -108,7 +112,7 @@ module pd3 #(
     // ============= RV32 MAIN BLOCKS =============
     // ============================================
 
-    // =========== CONTROL ===========
+    // =========== CONTROL MODULE INSTANTIATION ===========
     control #(
         .DWIDTH     (DWIDTH)
     ) ctrl_inst (
@@ -132,7 +136,7 @@ module pd3 #(
     assign CTRL_FUNCT7_I    = DECODE_FUNCT7_O;
     assign CTRL_FUNCT3_I    = DECODE_FUNCT3_O;
 
-    // =========== FETCH ===========
+    // =========== FETCH MODULE INSTANTIATION ===========
     fetch fetch_i(
         .clk        (clk),
         .rst        (reset),
@@ -141,7 +145,7 @@ module pd3 #(
     );
     assign FETCH_INSN_O     = MEM_DATA_O;
 
-    // =========== INSTRUCTION MEMORY ===========
+    // =========== INSTRUCTION MEMORY MODULE INSTANTIATION ===========
     memory #(
         .AWIDTH     (AWIDTH),
         .DWIDTH     (DWIDTH)
@@ -164,7 +168,7 @@ module pd3 #(
     assign MEM_READ_EN_I    = 1'b1;
     assign MEM_WRITE_EN_I   = 1'b0;
 
-    // =========== DECODE ===========
+    // =========== DECODE MODULE INSTANTIATION ===========
     decode decode_i(
         .clk        (clk),
         .rst        (reset),
@@ -186,7 +190,7 @@ module pd3 #(
     assign DECODE_PC_I      = FETCH_PC_O;
     assign DECODE_IMM_O     = IGEN_IMM_O;
 
-    // =========== IMMEDIATE GENERATOR ===========
+    // =========== IMMEDIATE GENERATOR MODULE INSTANTIATION ===========
     igen igen_i(
         .opcode_i   (IGEN_OPCODE_I),
         .insn_i     (IGEN_INSN_I),
@@ -196,7 +200,7 @@ module pd3 #(
     assign IGEN_OPCODE_I    = DECODE_OPCODE_O;
     assign IGEN_INSN_I      = DECODE_INSN_O;
 
-    // =========== REGISTER FILE ===========
+    // =========== REGISTER FILE MODULE INSTANTIATION ===========
     register_file #(
         .DWIDTH(DWIDTH)
     ) register_file_i (
@@ -219,7 +223,7 @@ module pd3 #(
     assign RF_DATAWB_I      = 'd0;
     assign RF_REGWREN_I     = CTRL_REGWREN_O;
 
-    // =========== Branch Comparator ===========
+    // =========== BRANCH COMPARATOR MODULE INSTANTIATION ===========
     branch_control branching(
         .opcode_i(DECODE_OPCODE_O),
         .funct3_i(DECODE_FUNCT3_O),
@@ -248,7 +252,7 @@ module pd3 #(
         else ALU_BRTAKEN_O = 'd0;
     end
 
-    // =========== EXECUTE ===========
+    // =========== EXECUTE MODULE INSTANTIATION ===========
     alu #(
         .DWIDTH(DWIDTH),
         .AWIDTH(AWIDTH)
