@@ -25,8 +25,9 @@ module alu #(
     input logic [AWIDTH-1:0] pc_i,
     input logic [DWIDTH-1:0] rs1_i,
     input logic [DWIDTH-1:0] rs2_i,
-    //input logic [2:0] funct3_i,
-    //input logic [6:0] funct7_i,
+    input logic [6:0] opcode_i,
+    input logic [2:0] funct3_i,
+    input logic [6:0] funct7_i,
     /* We are going to be using the alusel_i from decode*/
     input logic [3:0] alusel_i,
     output logic [DWIDTH-1:0] res_o,
@@ -37,7 +38,7 @@ module alu #(
      * Process definitions to be filled by
      * student below...
      */
-    assign brtaken_o = 1'b0;
+    //assign brtaken_o = 1'b0;
     always_comb begin: ALU
         case(alusel_i)
         ADD: res_o = rs1_i + rs2_i;
@@ -54,6 +55,29 @@ module alu #(
 
         default: res_o = 'd0;
         endcase
+    end
+
+    logic brequal,brlt;
+    branch_control branching(
+        .opcode_i(opcode_i),
+        .funct3_i(funct3_i),
+        .rs1_i(rs1_i),
+        .rs2_i(rs2_i),
+        .breq_o(brequal),
+        .brlt_o(brlt)
+    );
+    always_comb begin: BRANCHER
+        if(opcode_i==BRANCH) begin
+            case(funct3_i)
+            'h0: brtaken_o = brequal;
+            'h1: brtaken_o = ~brequal;
+            'h4, 'h6: brtaken_o = brlt;
+            'h5, 'h7: brtaken_o = ~brlt;
+            default: brtaken_o = 'd0;
+            endcase
+        end
+        else brtaken_o = 'd0;
+
     end
 
 endmodule : alu

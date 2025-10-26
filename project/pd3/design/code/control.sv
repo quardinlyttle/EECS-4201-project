@@ -193,7 +193,7 @@ module control #(
                 immsel_o =  1'b1;
                 regwren_o = 1'b0;
                 rs1sel_o =  1'b0;
-                rs2sel_o =  1'b0;
+                rs2sel_o =  1'b1;
                 memren_o =  1'b0;
                 memwren_o = 1'b1;
                 alusel_o = ADD;

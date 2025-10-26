@@ -194,7 +194,8 @@ module pd3 #(
         .rs1_i      (RF_RS1_I),
         .rs2_i      (RF_RS2_I),
         .rd_i       (RF_RD_I),
-        .datawb_i   (RF_DATAWB_I),
+        //.datawb_i   (RF_DATAWB_I),
+        .datawb_i   ('d0),
         .regwren_i  (RF_REGWREN_I),
         .rs1data_o  (RF_RS1DATA_O),
         .rs2data_o  (RF_RS2DATA_O)
@@ -203,7 +204,7 @@ module pd3 #(
     assign RF_RS1_I         = DECODE_RS1_O;
     assign RF_RS2_I         = DECODE_RS2_O;
     assign RF_RD_I          = DECODE_RD_O;
-    assign RF_DATAWB_I      = ALU_RES_O;
+    ///assign RF_DATAWB_I      = ALU_RES_O;
     assign RF_REGWREN_I     = CTRL_REGWREN_O;
 
     // =========== EXECUTE ===========
@@ -212,6 +213,9 @@ module pd3 #(
         .AWIDTH(AWIDTH)
     )alu_e(
         .pc_i       (ALU_PC_I),
+        .opcode_i   (DECODE_OPCODE_O),
+        .funct3_i   (DECODE_FUNCT3_O),
+        .funct7_i   (DECODE_FUNCT7_O),
         .rs1_i      (ALU_RS1_I),
         .rs2_i      (ALU_RS2_I),
         .alusel_i   (ALU_SEL_I),
@@ -221,7 +225,7 @@ module pd3 #(
     //Assign ALU inputs
     assign ALU_PC_I     = DECODE_PC_O;
     assign ALU_RS1_I    = RF_RS1DATA_O;
-    assign ALU_RS2_I    = (CTRL_IMMSEL_O == 0)? RF_RS2DATA_O : IGEN_IMM_O;
+    assign ALU_RS2_I    = (CTRL_RS2SEL_O == 1)? RF_RS2DATA_O : IGEN_IMM_O;
     assign ALU_SEL_I    = CTRL_ALUSEL_O;
 
     /*
