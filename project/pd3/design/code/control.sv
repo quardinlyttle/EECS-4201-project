@@ -186,6 +186,7 @@ module control #(
             end
 
             //Store Instructions
+            //Remember the logic is a mux not on off so 0 is selected.
             STORE: begin
                 wbsel_o =   wbOFF;
                 pcsel_o =   1'b0;

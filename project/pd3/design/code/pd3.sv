@@ -8,6 +8,9 @@
  * 2) reset signal
  */
 
+
+`include "constants.svh"
+
 module pd3 #(
     parameter int AWIDTH = 32,
     parameter int DWIDTH = 32)(
@@ -200,8 +203,8 @@ module pd3 #(
     assign RF_RS1_I         = DECODE_RS1_O;
     assign RF_RS2_I         = DECODE_RS2_O;
     assign RF_RD_I          = DECODE_RD_O;
-    assign RF_DATAWB_I      = 32'b0;
-    assign RF_REGWREN_I     = 1'b0;
+    assign RF_DATAWB_I      = ALU_RES_O;
+    assign RF_REGWREN_I     = CTRL_REGWREN_O;
 
     // =========== EXECUTE ===========
     alu #(
@@ -221,5 +224,18 @@ module pd3 #(
     assign ALU_RS2_I    = (CTRL_IMMSEL_O == 0)? RF_RS2DATA_O : IGEN_IMM_O;
     assign ALU_SEL_I    = CTRL_ALUSEL_O;
 
+    /*
+    TODO: This is me trying to have a quick temp writeback for the load word.
+    always_comb begin
+        case(CTRL_WBSEL_O)
+            wbALU: RF_DATAWB_I = ALU_RES_O;
+            wbMEM: RF_DATAWB_I = MEM_DATA_O;
+        endcase
+    end
+
+    always_comb begin
+      MEM_ADDR_I = (CTRL_MEMREN_O == 'd1 ) ? ALU_RES_O : DECODE_PC_O; 
+    end
+    */
 
 endmodule : pd3
