@@ -50,6 +50,8 @@ module memory #(
     logic [7:0] main_memory [0:`MEM_DEPTH];  // Byte-addressable memory
     logic [AWIDTH-1:0] address;
     assign address = (addr_i < BASE_ADDR) ? 'h0 : (addr_i - BASE_ADDR);
+
+    logic [AWIDTH-1:0] insn_address;
     assign insn_address = (insn_addr_i < BASE_ADDR) ? 'h0 : (insn_addr_i - BASE_ADDR);
 
     `ifndef TESTBENCH
@@ -73,9 +75,8 @@ module memory #(
         if (address < `MEM_DEPTH - 3) begin
 
             case(funct3_i)
-
                 SBYTE: main_memory[address] <= data_i[7:0];
-                
+
                 SHALF: begin
                     for (int i = 0; i<2; i++)begin
                         main_memory[address + i] <= data_i[i*BYTE_SIZE +: BYTE_SIZE];
@@ -102,44 +103,7 @@ module memory #(
 
   /* ========================= MEMORY READ LOGIC =========================
    * Read from memory, output zero if not enabled
-   * We have logic that accounts for loading bytes from last 3 bytes, such that output would be 0 extended.
-
-   * Visual representation of the data output based on the memory address.
-   * The output is always a 32-bit word (4 bytes).
-   * Each 'B' represents a byte read from memory.
-   * Each '0' represents a zero-padded byte.
-
-   * Normal Case: Read four full bytes.
-   * address <= MEM_DEPTH - 4
-   *           |      byte 3       |      byte 2       |      byte 1       |      byte 0       |
-   * data_o = { main_memory[addr+3], main_memory[addr+2], main_memory[addr+1], main_memory[addr] };
-   *           |-------- B --------|-------- B --------|-------- B --------|-------- B --------|
-
-   * Special Case 1: Read from the third-to-last address.
-   * address = MEM_DEPTH - 3
-   *           |      byte 3       |      byte 2       |      byte 1       |      byte 0       |
-   * data_o = { 8'b0,                main_memory[addr+2], main_memory[addr+1], main_memory[addr] };
-   *           |-------- 0 --------|-------- B --------|-------- B --------|-------- B --------|
-
-   * Special Case 2: Read from the second-to-last address.
-   * address = MEM_DEPTH - 2
-   *           |      byte 3       |      byte 2       |      byte 1       |      byte 0       |
-   * data_o = {                  16'b0,                   main_memory[addr+1], main_memory[addr] };
-   *           |-------- 0 --------|-------- 0 --------|-------- B --------|-------- B --------|
-
-   * Special Case 3: Read from the last address.
-   * address = MEM_DEPTH - 1
-   *           |      byte 3       |      byte 2       |      byte 1       |      byte 0       |
-   * data_o = {                            24'b0,                              main_memory[addr] };
-   *           |-------- 0 --------|-------- 0 --------|-------- 0 --------|-------- B --------|
-
-   * Not Enabled Case: If read_en_i is not enabled, the output is all zeros.
-   * data_o = '0;
-   *           |-------- 0 --------|-------- 0 --------|-------- 0 --------|-------- 0 --------|
    */
-
-    //TODO: Should we consider alignment access and fix this code and above comment accordingly?
-    //As in do we remove no aligned support?
 
     logic [DWIDTH-1:0] data;
     always_comb begin
@@ -148,71 +112,31 @@ module memory #(
             data_vld_o = 1'b0;
         end else if (read_en_i) begin
             data_vld_o = 1'b1;
-            case(address)
-                // Normal Case: Read four full bytes.
-                case(funct3_i)
-                    LBYTE: data_o = { {24{main_memory[address][7]}},
-                                    main_memory[address]
-                                    };
-
-                    LHALF: data_o = { {16{main_memory[address][7]}},
-                                    main_memory[address + 2],
-                                    main_memory[address]
-                                    };
-
-                    LWORD: data_o =  { main_memory[address + 3],
-                                    main_memory[address + 2],
-                                    main_memory[address + 1],
-                                    main_memory[address]
-                                    };
-
-                    LBU: data_o  =  { 24'b0,
-                                    main_memory[address]
-                                    };
-
-                    LHU: data_o =  { 16'b0,
-                                    main_memory[address + 2],
-                                    main_memory[address]
-                                    };
-
-                    default : begin
-                        data_o =  { main_memory[address + 3],
-                                    main_memory[address + 2],
-                                    main_memory[address + 1],
-                                    main_memory[address]
-                                    };
-                    end
-                endcase
-
-                // Special Case 1: Read from the third-to-last address.
-                (`MEM_DEPTH - 3) : begin
-                    data_o =  { 8'b0,
-                                main_memory[address + 2],
-                                main_memory[address + 1],
-                                main_memory[address]
-                                };
-                end
-
-                // Special Case 2: Read from the second-to-last address.
-                (`MEM_DEPTH - 2) : begin
-                    data_o =  { 16'b0,
-                                main_memory[address + 1],
-                                main_memory[address]
-                                };
-                end
-
-                // Special Case 3: Read from the last address.
-                (`MEM_DEPTH - 1) : begin
-                    data_o =  { 24'b0,
-                                main_memory[address]
-                                };
-                end
-            endcase
+            data =  {
+                        main_memory[address + 3],
+                        main_memory[address + 2],
+                        main_memory[address + 1],
+                        main_memory[address]
+                    };
         end else begin
             // Not Enabled Case: If read_en_i is not enabled, the output is all zeros.
-            data_o = '0;
+            data = '0;
             data_vld_o = 1'b0;
         end
+
+        // Output data from readout according to read mode specified
+        case(funct3_i)
+            // Signed Extended Outputs
+            LBYTE:  data_o  = { {24{data[BYTE_SIZE-1]}}, data[BYTE_SIZE-1:0] };
+            LHALF:  data_o  = { {16{data[2*BYTE_SIZE-1]}}, data[2*BYTE_SIZE-1:0] };
+
+            // Zero Extended Outputs
+            LBU:    data_o  =  { 24'b0, data[BYTE_SIZE-1:0] };
+            LHU:    data_o  =  { 16'b0, data[2*BYTE_SIZE-1:0] };
+
+            // Full Word Output
+            LWORD:  data_o  = data;
+        endcase
     end
 
     // Instruction readout
