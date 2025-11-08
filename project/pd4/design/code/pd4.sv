@@ -69,6 +69,7 @@ module pd4 #(
     logic [DWIDTH-1:0]  MEM_DATA_I;
     logic               MEM_READ_EN_I;
     logic               MEM_WRITE_EN_I;
+    logic [2:0]         MEM_FUNCT3_I;
     // Memory Outputs
     logic [DWIDTH-1:0]  MEM_DATA_O;
     logic               MEM_DATA_VLD_O;
@@ -154,6 +155,7 @@ module pd4 #(
 
         .read_en_i  (MEM_READ_EN_I),
         .write_en_i (MEM_WRITE_EN_I),
+        .funct3_i   (MEM_FUNCT3_I),
 
         .data_o     (MEM_DATA_O),
         .data_vld_o (MEM_DATA_VLD_O)
@@ -163,6 +165,7 @@ module pd4 #(
     assign MEM_DATA_I       = 32'b0;
     assign MEM_READ_EN_I    = 1'b1;
     assign MEM_WRITE_EN_I   = 1'b0;
+    assign MEM_FUNCT3_I     = DECODE_FUNCT3_O;
 
     // =========== DECODE MODULE INSTANTIATION ===========
     decode decode_i(

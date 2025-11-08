@@ -52,6 +52,8 @@ module control #(
     output logic rs2sel_o,
     output logic memren_o,
     output logic memwren_o,
+    output logic [2:0] memReadType_o,
+    output logic [2:0] memWriteType_o,
     output logic [1:0] wbsel_o,
     output logic [3:0] alusel_o
 );

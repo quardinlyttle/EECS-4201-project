@@ -30,6 +30,7 @@ module memory #(
     input logic [DWIDTH-1:0] data_i,
     input logic read_en_i,
     input logic write_en_i,
+    input logic [2:0] funct3_i,
 
     // Instruction Data Inputs
     input logic [AWIDTH-1:0] insn_addr_i,
@@ -70,17 +71,31 @@ module memory #(
         if (write_en_i) begin
         // Check if Address is in range, ignore write if not
         if (address < `MEM_DEPTH - 3) begin
-            // Loop iterates through 4 input bytes
-            for (int i = 0; i<4; i++) begin
-            main_memory[address + i] <= data_i[i*BYTE_SIZE +: BYTE_SIZE];
-            end
-            /*
-            * What the For-Loop is doing:
-            * main_memory[address]      <= data_i[7:0];
-            * main_memory[address + 1]  <= data_i[15:8];
-            * main_memory[address + 2]  <= data_i[23:16];
-            * main_memory[address + 3]  <= data_i[31:24];
-            */
+
+            case(funct3_i)
+
+                SBYTE: main_memory[address] <= data_i[7:0];
+                
+                SHALF: begin
+                    for (int i = 0; i<2; i++)begin
+                        main_memory[address + i] <= data_i[i*BYTE_SIZE +: BYTE_SIZE];
+                    end
+                end
+
+                SWORD: begin
+                    // Loop iterates through 4 input bytes
+                    for (int i = 0; i<4; i++) begin
+                        main_memory[address + i] <= data_i[i*BYTE_SIZE +: BYTE_SIZE];
+                    end
+                    /*
+                    * What the For-Loop is doing:
+                    * main_memory[address]      <= data_i[7:0];
+                    * main_memory[address + 1]  <= data_i[15:8];
+                    * main_memory[address + 2]  <= data_i[23:16];
+                    * main_memory[address + 3]  <= data_i[31:24];
+                    */
+                end
+            endcase
         end
         end
     end
@@ -122,6 +137,10 @@ module memory #(
    * data_o = '0;
    *           |-------- 0 --------|-------- 0 --------|-------- 0 --------|-------- 0 --------|
    */
+
+    //TODO: Should we consider alignment access and fix this code and above comment accordingly?
+    //As in do we remove no aligned support?
+
     logic [DWIDTH-1:0] data;
     always_comb begin
         if(rst) begin
@@ -131,13 +150,39 @@ module memory #(
             data_vld_o = 1'b1;
             case(address)
                 // Normal Case: Read four full bytes.
-                default : begin
-                    data_o =  { main_memory[address + 3],
-                                main_memory[address + 2],
-                                main_memory[address + 1],
-                                main_memory[address]
-                                };
-                end
+                case(funct3_i)
+                    LBYTE: data_o = { {24{main_memory[address][7]}},
+                                    main_memory[address]
+                                    };
+
+                    LHALF: data_o = { {16{main_memory[address][7]}},
+                                    main_memory[address + 2],
+                                    main_memory[address]
+                                    };
+
+                    LWORD: data_o =  { main_memory[address + 3],
+                                    main_memory[address + 2],
+                                    main_memory[address + 1],
+                                    main_memory[address]
+                                    };
+
+                    LBU: data_o  =  { 24'b0,
+                                    main_memory[address]
+                                    };
+
+                    LHU: data_o =  { 16'b0,
+                                    main_memory[address + 2],
+                                    main_memory[address]
+                                    };
+
+                    default : begin
+                        data_o =  { main_memory[address + 3],
+                                    main_memory[address + 2],
+                                    main_memory[address + 1],
+                                    main_memory[address]
+                                    };
+                    end
+                endcase
 
                 // Special Case 1: Read from the third-to-last address.
                 (`MEM_DEPTH - 3) : begin
