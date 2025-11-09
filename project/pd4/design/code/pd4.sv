@@ -158,7 +158,7 @@ module pd4 #(
     );
     assign FETCH_INSN_O     = MEM_INSN_O;
     assign FETCH_PC_SEL_I   = CTRL_PCSEL_O;
-    assign FETCH_NEWPC_I    = ALU_SEL_I;
+    assign FETCH_NEWPC_I    = ALU_RES_O;
 
     // =========== INSTRUCTION MEMORY MODULE INSTANTIATION ===========
     memory #(
@@ -175,19 +175,19 @@ module pd4 #(
         .write_en_i (MEM_WRITE_EN_I),
         .funct3_i   (MEM_FUNCT3_I),
 
-        .insn_addr_i(MEM_ADDR_I),
+        .insn_addr_i(MEM_INSN_ADDR_I),
         .insn_o     (MEM_INSN_O),
 
         .data_o     (MEM_DATA_O),
         .data_vld_o (MEM_DATA_VLD_O)
     );
     // Assign Instruction Memory Inputs
-    assign MEM_ADDR_I       = DECODE_PC_O;
-    assign MEM_DATA_I       = 32'b0;
-    assign MEM_READ_EN_I    = 1'b1;
-    assign MEM_WRITE_EN_I   = 1'b0;
+    assign MEM_ADDR_I       = ALU_RES_O;
+    assign MEM_DATA_I       = DECODE_RS2_O;
+    assign MEM_READ_EN_I    = CTRL_MEMREN_O;
+    assign MEM_WRITE_EN_I   = CTRL_MEMWREN_O;
     assign MEM_FUNCT3_I     = DECODE_FUNCT3_O;
-    assign MEM_INSN_ADDR_I  = FETCH_PC_O;
+    assign MEM_INSN_ADDR_I  = DECODE_PC_O;
 
     // =========== DECODE MODULE INSTANTIATION ===========
     decode decode_i(
@@ -241,7 +241,7 @@ module pd4 #(
     assign RF_RS2_I         = DECODE_RS2_O;
     assign RF_RD_I          = DECODE_RD_O;
     // assign RF_DATAWB_I      = ALU_RES_O;
-    assign RF_DATAWB_I      = 'd0;
+    assign RF_DATAWB_I      = WB_DATA_O;
     assign RF_REGWREN_I     = CTRL_REGWREN_O;
 
     // =========== BRANCH COMPARATOR MODULE INSTANTIATION ===========
