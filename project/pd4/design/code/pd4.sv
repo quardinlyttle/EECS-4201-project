@@ -152,7 +152,7 @@ module pd4 #(
         .clk        (clk),
         .rst        (reset),
         .pc_sel_i   (FETCH_PC_SEL_I),
-        .newpc_o    (FETCH_NEWPC_I),
+        .newpc_i    (FETCH_NEWPC_I),
         .pc_o       (FETCH_PC_O),
         .insn_o     (FETCH_INSN_O)
     );
@@ -303,7 +303,7 @@ module pd4 #(
         .memory_data_i(WB_MEMORY_DATA_I),
         .wbsel_i(WB_SEL_I),
         .brtaken_i(WB_BRTAKEN_I),
-        .write_data_o(WB_DATA_O),
+        .writeback_data_o(WB_DATA_O),
         .next_pc_o(WB_NEXT_PC_O)
     );
 
