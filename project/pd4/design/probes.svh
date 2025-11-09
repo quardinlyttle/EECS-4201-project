@@ -24,12 +24,12 @@
 `define PROBE_E_ALU_RES           ALU_RES_O
 `define PROBE_E_BR_TAKEN          ALU_BRTAKEN_O
 
-`define PROBE_M_PC                // ??
-`define PROBE_M_ADDRESS           // ??
-`define PROBE_M_SIZE_ENCODED      // ??
-`define PROBE_M_DATA              // ??
+`define PROBE_M_PC                MEM_INSN_ADDR_I
+`define PROBE_M_ADDRESS           MEM_ADDR_I
+`define PROBE_M_SIZE_ENCODED      MEM_FUNCT3_I
+`define PROBE_M_DATA              MEM_DATA_O
 
-`define PROBE_W_PC                // ??
+`define PROBE_W_PC                WB_PC_I
 `define PROBE_W_ENABLE            // ??
 `define PROBE_W_DESTINATION       // ??
 `define PROBE_W_DATA              // ??

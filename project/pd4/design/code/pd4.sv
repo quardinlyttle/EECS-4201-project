@@ -39,6 +39,8 @@ module pd4 #(
     // Fetch Outputs
     logic [AWIDTH-1:0]  FETCH_PC_O;
     logic [DWIDTH-1:0]  FETCH_INSN_O;
+    logic               FETCH_PC_SEL_I;
+    logic [AWIDTH-1:0]  FETCH_NEWPC_I;
 
     // ======= DECODE SIGNALS =======
     // Decode Inputs
@@ -73,6 +75,9 @@ module pd4 #(
     // Memory Outputs
     logic [DWIDTH-1:0]  MEM_DATA_O;
     logic               MEM_DATA_VLD_O;
+    //Instruction Ports
+    logic [AWIDTH-1:0] MEM_INSN_ADDR_I;
+    logic [DWIDTH-1:0] MEM_INSN_O;
 
     // ======= REGISTER FILE SIGNALS =======
     // RF Inputs
@@ -104,6 +109,15 @@ module pd4 #(
     // BC Outputs
     logic               BC_BREQ_O;
     logic               BC_BRLT_O;
+
+    // ======= WRITEBACK SIGNALS =======
+    logic [AWIDTH-1:0]  WB_PC_I;
+    logic [DWIDTH-1:0]  WB_ALU_RES_I;
+    logic [DWIDTH-1:0]  WB_MEMORY_DATA_I;
+    logic [1:0]         WB_SEL_I;
+    logic               WB_BRTAKEN_I;
+    logic [DWIDTH-1:0]  WB_DATA_O;
+    logic [AWIDTH-1:0]  WB_NEXT_PC_O;
 
     // ============================================
     // ============= RV32 MAIN BLOCKS =============
@@ -137,10 +151,14 @@ module pd4 #(
     fetch fetch_i(
         .clk        (clk),
         .rst        (reset),
+        .pc_sel_i   (FETCH_PC_SEL_I)
+        .newpc_o    (FETCH_NEWPC_I)
         .pc_o       (FETCH_PC_O),
         .insn_o     (FETCH_INSN_O)
     );
-    assign FETCH_INSN_O     = MEM_DATA_O;
+    assign FETCH_INSN_O     = MEM_INSN_O;
+    assign FETCH_PC_SEL_I   = CTRL_PCSEL_O;
+    assign FETCH_NEWPC_I    = ALU_SEL_I;
 
     // =========== INSTRUCTION MEMORY MODULE INSTANTIATION ===========
     memory #(
@@ -157,6 +175,9 @@ module pd4 #(
         .write_en_i (MEM_WRITE_EN_I),
         .funct3_i   (MEM_FUNCT3_I),
 
+        .insn_addr_i(MEM_ADDR_I),
+        .insn_o     (MEM_INSN_O),
+
         .data_o     (MEM_DATA_O),
         .data_vld_o (MEM_DATA_VLD_O)
     );
@@ -166,6 +187,7 @@ module pd4 #(
     assign MEM_READ_EN_I    = 1'b1;
     assign MEM_WRITE_EN_I   = 1'b0;
     assign MEM_FUNCT3_I     = DECODE_FUNCT3_O;
+    assign MEM_INSN_ADDR_I  = FETCH_PC_O;
 
     // =========== DECODE MODULE INSTANTIATION ===========
     decode decode_i(
@@ -270,6 +292,26 @@ module pd4 #(
     assign ALU_RS1_I    = RF_RS1DATA_O;
     assign ALU_RS2_I    = (CTRL_IMMSEL_O)? IGEN_IMM_O : RF_RS2DATA_O;
     assign ALU_SEL_I    = CTRL_ALUSEL_O;
+
+    // =========== WRITEBACK MODULE INSTANTIATION ===========
+    writeback #(
+        .DWIDTH(DWIDTH),
+        .AWIDTH(AWIDTH)
+    )writeback(
+        .pc_i(WB_PC_I),
+        .alu_res_i(WB_ALU_RES_I),
+        .memory_data_i(WB_MEMORY_DATA_I),
+        .wbsel_i(WB_SEL_I),
+        .brtaken_i(WB_BRTAKEN_I),
+        .write_data_o(WB_DATA_O),
+        .next_pc_o(WB_NEXT_PC_O)
+    );
+
+    assign WB_PC_I          = ;
+    assign WB_ALU_RES_I     = ALU_RES_O;
+    assign WB_MEMORY_DATA_I = MEM_DATA_O;
+    assign WB_SEL_I         = CTRL_WBSEL_O;
+    assign WB_BRTAKEN_I     = ALU_BRTAKEN_O;
 
 
     // program termination logic

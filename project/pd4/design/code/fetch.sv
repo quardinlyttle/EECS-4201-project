@@ -21,6 +21,8 @@ module fetch #(
 	// inputs
 	input logic clk,
 	input logic rst,
+    input logic pc_sel_i,
+    input logic [AWIDTH - 1:0] newpc_i,
 	// outputs
 	output logic [AWIDTH - 1:0] pc_o,
     output logic [DWIDTH - 1:0] insn_o
@@ -30,13 +32,20 @@ module fetch #(
      * student below...
      */
 
-    logic [AWIDTH - 1:0] pc;
+    logic [AWIDTH - 1:0] pc,newpc;
+    logic pc_sel;
 
     always_ff @(posedge clk) begin
         if (rst) begin
             pc <= BASEADDR;
+            pc_sel <= 1'b1;
         end else begin
-            pc <= pc + 32'd4;
+            if(pc_sel) begin
+                pc <= pc + 32'd4;
+            end
+            else begin
+                pc <= newpc_i;
+            end
         end
     end
 
