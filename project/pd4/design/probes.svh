@@ -30,9 +30,9 @@
 `define PROBE_M_DATA              MEM_DATA_O
 
 `define PROBE_W_PC                WB_PC_I
-`define PROBE_W_ENABLE            // ??
-`define PROBE_W_DESTINATION       // ??
-`define PROBE_W_DATA              // ??
+`define PROBE_W_ENABLE            CTRL_REGWREN_O
+`define PROBE_W_DESTINATION       DECODE_RD_O
+`define PROBE_W_DATA              WB_DATA_O
 
 // ----  Probes  ----
 

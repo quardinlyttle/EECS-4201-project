@@ -16,7 +16,7 @@
  * 1) DWIDTH data output data_o
  * 2) data out valid signal data_vld_o
  */
-
+`include"constants.svh"
 module memory #(
     // parameters
     parameter int AWIDTH = 32,

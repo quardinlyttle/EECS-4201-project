@@ -14,7 +14,7 @@
  * 1) DWIDTH wide write back data write_data_o
  * 2) AWIDTH wide next computed PC next_pc_o
  */
-
+`include"constants.svh"
  module writeback #(
     parameter int DWIDTH=32,
     parameter int AWIDTH=32
@@ -33,7 +33,8 @@
             wbALU           : writeback_data_o = alu_res_i;
             wbMEM           : writeback_data_o = memory_data_i;
             wbPC            : writeback_data_o = pc_i;
-            wbOFF, default  : writeback_data_o = 32'd0;
+            wbOFF           : writeback_data_o = 32'd0;
+            default         : writeback_data_o = 32'd0;
         endcase
     end
 

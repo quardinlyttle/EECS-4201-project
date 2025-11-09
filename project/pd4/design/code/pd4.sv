@@ -7,7 +7,7 @@
  * 1) clk
  * 2) reset signal
  */
-
+`include "constants.svh"
 module pd4 #(
     parameter int AWIDTH = 32,
     parameter int DWIDTH = 32)(
@@ -151,8 +151,8 @@ module pd4 #(
     fetch fetch_i(
         .clk        (clk),
         .rst        (reset),
-        .pc_sel_i   (FETCH_PC_SEL_I)
-        .newpc_o    (FETCH_NEWPC_I)
+        .pc_sel_i   (FETCH_PC_SEL_I),
+        .newpc_o    (FETCH_NEWPC_I),
         .pc_o       (FETCH_PC_O),
         .insn_o     (FETCH_INSN_O)
     );
@@ -307,7 +307,7 @@ module pd4 #(
         .next_pc_o(WB_NEXT_PC_O)
     );
 
-    assign WB_PC_I          = ;
+    assign WB_PC_I          = DECODE_PC_O;
     assign WB_ALU_RES_I     = ALU_RES_O;
     assign WB_MEMORY_DATA_I = MEM_DATA_O;
     assign WB_SEL_I         = CTRL_WBSEL_O;
@@ -317,8 +317,8 @@ module pd4 #(
     // program termination logic
     reg is_program = 0;
     always_ff @(posedge clk) begin
-        if (data_out == 32'h00000073) $finish;  // directly terminate if see ecall
-        if (data_out == 32'h00008067) is_program = 1;  // if see ret instruction, it is simple program test
+        if (MEM_DATA_O == 32'h00000073) $finish;  // directly terminate if see ecall
+        if (MEM_DATA_O == 32'h00008067) is_program = 1;  // if see ret instruction, it is simple program test
         // [TODO] Change register_file_0.registers[2] to the appropriate x2 register based on your module instantiations...
         // if (is_program && (register_file_0.registers[2] == 32'h01000000 + `MEM_DEPTH)) $finish;
         if (is_program && (register_file_i.rf_registers[2] == 32'h01000000 + `MEM_DEPTH)) $finish;
