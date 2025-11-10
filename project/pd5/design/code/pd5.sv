@@ -120,6 +120,33 @@ module pd5 #(
     logic [DWIDTH-1:0]  WB_DATA_O;
     logic [AWIDTH-1:0]  WB_NEXT_PC_O;
 
+    // ================================================
+    // ============== PIPELINE REGISTERS ==============
+    // ================================================
+
+    // ======= FETCH-DECODE PIPELINE REGISTERS =======
+    logic [AWIDTH-1:0]      FETCH_DECODE_PC;
+    logic [DWIDTH-1:0]      FETCH_DECODE_INSN;
+
+    // ======= DECODE-EXECUTE PIPELINE REGISTERS =======
+    logic [AWIDTH-1:0]      DECODE_EXECUTE_PC;
+    logic [OPCODE_SIZE-1:0] DECODE_EXECUTE_OPCODE;
+    logic [FUNCT3_SIZE-1:0] DECODE_EXECUTE_FUNCT3;
+    logic [FUNCT7_SIZE-1:0] DECODE_EXECUTE_FUNCT7;
+    logic [DWIDTH-1:0]      DECODE_EXECUTE_RS1DATA;
+    logic [DWIDTH-1:0]      DECODE_EXECUTE_RS2DATA;
+
+    // DECODE-EXECUTE CONTROL REGISTERS
+    logic                   DECODE_EXECUTE_PCSEL;
+    logic                   DECODE_EXECUTE_IMMSEL;
+    logic                   DECODE_EXECUTE_REGWREN;
+    logic                   DECODE_EXECUTE_RS1SEL;
+    logic                   DECODE_EXECUTE_RS2SEL;
+    logic                   DECODE_EXECUTE_MEMREN;
+    logic                   DECODE_EXECUTE_MEMWREN;
+    logic [WBSEL_SIZE-1:0]  DECODE_EXECUTE_WBSEL;
+    logic [ALUSEL_SIZE-1:0] DECODE_EXECUTE_ALUSEL;
+
     // ============================================
     // ============= RV32 MAIN BLOCKS =============
     // ============================================
@@ -160,37 +187,6 @@ module pd5 #(
     assign FETCH_INSN_O     = MEM_INSN_O;
     assign FETCH_PC_SEL_I   = CTRL_PCSEL_O;
     assign FETCH_NEWPC_I    = WB_NEXT_PC_O;
-
-    // =========== INSTRUCTION MEMORY MODULE INSTANTIATION ===========
-    memory #(
-        .AWIDTH     (AWIDTH),
-        .DWIDTH     (DWIDTH)
-    ) insn_mem (
-        .clk        (clk),
-        .rst        (reset),
-
-        .addr_i     (MEM_ADDR_I),
-        .data_i     (MEM_DATA_I),
-
-        .read_en_i  (MEM_READ_EN_I),
-        .write_en_i (MEM_WRITE_EN_I),
-        .funct3_i   (MEM_FUNCT3_I),
-        .opcode_i   (MEM_OPCODE_I),
-
-        .insn_addr_i(MEM_INSN_ADDR_I),
-        .insn_o     (MEM_INSN_O),
-
-        .data_o     (MEM_DATA_O),
-        .data_vld_o (MEM_DATA_VLD_O)
-    );
-    // Assign Instruction Memory Inputs
-    assign MEM_ADDR_I       = ALU_RES_O;
-    assign MEM_DATA_I       = RF_RS2DATA_O;
-    assign MEM_READ_EN_I    = 1'b1;
-    assign MEM_WRITE_EN_I   = CTRL_MEMWREN_O;
-    assign MEM_FUNCT3_I     = DECODE_FUNCT3_O;
-    assign MEM_OPCODE_I     = DECODE_OPCODE_O;
-    assign MEM_INSN_ADDR_I  = DECODE_PC_O;
 
     // =========== DECODE MODULE INSTANTIATION ===========
     decode decode_i(
@@ -295,6 +291,37 @@ module pd5 #(
     assign ALU_RS1_I    = RF_RS1DATA_O;
     assign ALU_RS2_I    = (CTRL_IMMSEL_O)? IGEN_IMM_O : RF_RS2DATA_O;
     assign ALU_SEL_I    = CTRL_ALUSEL_O;
+
+    // =========== INSTRUCTION MEMORY MODULE INSTANTIATION ===========
+    memory #(
+        .AWIDTH     (AWIDTH),
+        .DWIDTH     (DWIDTH)
+    ) insn_mem (
+        .clk        (clk),
+        .rst        (reset),
+
+        .addr_i     (MEM_ADDR_I),
+        .data_i     (MEM_DATA_I),
+
+        .read_en_i  (MEM_READ_EN_I),
+        .write_en_i (MEM_WRITE_EN_I),
+        .funct3_i   (MEM_FUNCT3_I),
+        .opcode_i   (MEM_OPCODE_I),
+
+        .insn_addr_i(MEM_INSN_ADDR_I),
+        .insn_o     (MEM_INSN_O),
+
+        .data_o     (MEM_DATA_O),
+        .data_vld_o (MEM_DATA_VLD_O)
+    );
+    // Assign Instruction Memory Inputs
+    assign MEM_ADDR_I       = ALU_RES_O;
+    assign MEM_DATA_I       = RF_RS2DATA_O;
+    assign MEM_READ_EN_I    = 1'b1;
+    assign MEM_WRITE_EN_I   = CTRL_MEMWREN_O;
+    assign MEM_FUNCT3_I     = DECODE_FUNCT3_O;
+    assign MEM_OPCODE_I     = DECODE_OPCODE_O;
+    assign MEM_INSN_ADDR_I  = DECODE_PC_O;
 
     // =========== WRITEBACK MODULE INSTANTIATION ===========
     writeback #(
