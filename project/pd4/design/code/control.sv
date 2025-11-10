@@ -73,7 +73,7 @@ module control #(
                     3'h0: begin
                         case(funct7_i)
                             7'h0: alusel_o = ADD;
-                            7'h2: alusel_o = SUB;
+                            7'h20: alusel_o = SUB;
                             default: alusel_o = ADD;
                         endcase
                     end
