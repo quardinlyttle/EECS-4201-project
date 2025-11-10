@@ -158,7 +158,7 @@ module pd4 #(
     );
     assign FETCH_INSN_O     = MEM_INSN_O;
     assign FETCH_PC_SEL_I   = CTRL_PCSEL_O;
-    assign FETCH_NEWPC_I    = ALU_RES_O;
+    assign FETCH_NEWPC_I    = WB_NEXT_PC_O;
 
     // =========== INSTRUCTION MEMORY MODULE INSTANTIATION ===========
     memory #(
@@ -183,7 +183,7 @@ module pd4 #(
     );
     // Assign Instruction Memory Inputs
     assign MEM_ADDR_I       = ALU_RES_O;
-    assign MEM_DATA_I       = DECODE_RS2_O;
+    assign MEM_DATA_I       = RF_RS2DATA_O;
     assign MEM_READ_EN_I    = CTRL_MEMREN_O;
     assign MEM_WRITE_EN_I   = CTRL_MEMWREN_O;
     assign MEM_FUNCT3_I     = DECODE_FUNCT3_O;

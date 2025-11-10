@@ -33,7 +33,7 @@
             wbALU           : writeback_data_o = alu_res_i;
             wbMEM           : writeback_data_o = memory_data_i;
             wbPC            : writeback_data_o = pc_i;
-            wbOFF           : writeback_data_o = 32'd0;
+            wbOFF           : writeback_data_o = alu_res_i;
             default         : writeback_data_o = 32'd0;
         endcase
     end
