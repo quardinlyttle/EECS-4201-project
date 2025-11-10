@@ -18,3 +18,4 @@ project/pd0/verif/scripts/run.macro
 project/pd2/verif/scripts/package.vsim.pd2.Bleed_Red.tar.gz
 *.dump
 project/pd3/verif/scripts/package.vsim.pd3.Bleed_Red.tar.gz
+project/pd4/verif/scripts/package.vsim.pd4.Bleed_Red.tar.gz
