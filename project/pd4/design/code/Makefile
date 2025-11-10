@@ -1,10 +1,10 @@
 # Makefile for memory_tb.sv testbench with ModelSim (vsim)
 
 # Top-level testbench module
-TOP      = memory_tb
+TOP      = memory_tb writeback_tb
 
 # Source files
-SRCS     = memory.sv memory_tb.sv
+SRCS     = memory.sv memory_tb.sv writeback.sv writeback_tb.sv
 
 # Output VCD
 VCD      = $(TOP).vcd

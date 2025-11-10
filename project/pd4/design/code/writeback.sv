@@ -28,16 +28,19 @@
     output logic [AWIDTH-1:0] next_pc_o
  );
 
+    wire [AWIDTH-1:0] pc_inc;
+    assign pc_inc = pc_i + 32'd4;
+
     always_comb begin
         case(wbsel_i)
             wbALU           : writeback_data_o = alu_res_i;
             wbMEM           : writeback_data_o = memory_data_i;
             wbPC            : writeback_data_o = pc_i;
-            wbJAL           : writeback_data_o = pc_i+32'd4;
+            wbJAL           : writeback_data_o = pc_inc;
             default         : writeback_data_o = 32'd0;
         endcase
     end
 
-    assign next_pc_o = (brtaken_i || (wbsel_i == wbJAL)) ? alu_res_i : pc_i + 32'd4;
+    assign next_pc_o = (brtaken_i || (wbsel_i == wbJAL)) ? alu_res_i : pc_inc;
 
 endmodule : writeback

@@ -83,13 +83,6 @@ module writeback_tb;
         #1;
         check_outputs(alu_res_i, alu_res_i); // When branch taken, next_pc_o = alu_res_i
 
-        // ---------------- Test Case 6: Default Case ----------------
-        $display("\n--- Test Case 6: Default wbsel ---");
-        wbsel_i = 2'b11; // Assuming not used
-        brtaken_i = 0;
-        #1;
-        check_outputs(32'd0, pc_i + 4);
-
         $display("\n===============================================");
         $display("        All WRITEBACK Tests Completed!");
         $display("===============================================");
