@@ -32,7 +32,7 @@ module fetch #(
      * student below...
      */
 
-    logic [AWIDTH - 1:0] pc,newpc;
+    logic [AWIDTH - 1:0] pc;
     logic pc_sel;
 
     always_ff @(posedge clk) begin

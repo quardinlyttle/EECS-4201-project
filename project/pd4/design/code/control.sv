@@ -180,7 +180,7 @@ module control #(
                 regwren_o = 1'b1;
                 rs1sel_o =  1'b0;
                 rs2sel_o =  1'b1;
-                memren_o =  1'b1;
+                memren_o =  1'b0;
                 memwren_o = 1'b0;
                 alusel_o = ADD;
             end
@@ -188,7 +188,7 @@ module control #(
             //Store Instructions
             //Remember the logic is a mux not on off so 0 is selected.
             STORE: begin
-                wbsel_o =   wbOFF;
+                wbsel_o =   wbALU;
                 pcsel_o =   1'b0;
                 immsel_o =  1'b1;
                 regwren_o = 1'b0;
@@ -201,7 +201,7 @@ module control #(
 
             //Branch Instructions
             BRANCH: begin
-                wbsel_o =   wbOFF;
+                wbsel_o =   wbALU;
                 pcsel_o =   1'b1;
                 immsel_o =  1'b1;
                 regwren_o = 1'b0;
@@ -214,12 +214,12 @@ module control #(
 
             //Jump and Link
             JAL: begin
-                wbsel_o =   wbOFF;
-                pcsel_o =   1'b1;
+                wbsel_o =   wbJAL;
+                pcsel_o =   1'b0;
                 immsel_o =  1'b1;
                 regwren_o = 1'b1;
                 rs1sel_o =  1'b0;
-                rs2sel_o =  1'b0;
+                rs2sel_o =  1'b1;
                 memren_o =  1'b0;
                 memwren_o = 1'b0;
                 alusel_o = PCADD;
@@ -228,20 +228,20 @@ module control #(
             //Jump and Link Register
             //Note: this uses the I Type format. Funct 3 is fixed to 0;
             JALR: begin
-                wbsel_o =   wbOFF;
-                pcsel_o =   1'b1;
+                wbsel_o =   wbJAL;
+                pcsel_o =   1'b0;
                 immsel_o =  1'b1;
                 regwren_o = 1'b1;
                 rs1sel_o =  1'b0;
-                rs2sel_o =  1'b0;
+                rs2sel_o =  1'b1;
                 memren_o =  1'b0;
                 memwren_o = 1'b0;
-                alusel_o = ADD;
+                alusel_o = PCADD;
             end
 
             //Load Upper Immedaite
             LUI: begin
-                wbsel_o =   wbOFF;
+                wbsel_o =   wbALU;
                 pcsel_o =   1'b0;
                 immsel_o =  1'b1;
                 regwren_o = 1'b1;
@@ -254,7 +254,7 @@ module control #(
 
             //Add Upper Immediate to PC
             AUIPC: begin
-                wbsel_o =   wbOFF;
+                wbsel_o =   wbALU;
                 pcsel_o =   1'b1;
                 immsel_o =  1'b1;
                 regwren_o = 1'b1;
@@ -267,7 +267,7 @@ module control #(
 
             //Zero out everything on reset or unknown/invalid opcode
             default : begin
-                wbsel_o =   wbOFF;
+                wbsel_o =   wbALU;
                 pcsel_o =   1'b0;
                 immsel_o =  1'b0;
                 regwren_o = 1'b0;

@@ -33,11 +33,11 @@
             wbALU           : writeback_data_o = alu_res_i;
             wbMEM           : writeback_data_o = memory_data_i;
             wbPC            : writeback_data_o = pc_i;
-            wbOFF           : writeback_data_o = alu_res_i;
+            wbJAL           : writeback_data_o = pc_i+32'd4;
             default         : writeback_data_o = 32'd0;
         endcase
     end
 
-    assign next_pc_o = (brtaken_i) ? alu_res_i : pc_i + 32'd4;
+    assign next_pc_o = (brtaken_i || (wbsel_i == wbJAL)) ? alu_res_i : pc_i + 32'd4;
 
 endmodule : writeback

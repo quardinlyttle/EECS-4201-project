@@ -184,7 +184,7 @@ module pd4 #(
     // Assign Instruction Memory Inputs
     assign MEM_ADDR_I       = ALU_RES_O;
     assign MEM_DATA_I       = RF_RS2DATA_O;
-    assign MEM_READ_EN_I    = CTRL_MEMREN_O;
+    assign MEM_READ_EN_I    = 1'b1;
     assign MEM_WRITE_EN_I   = CTRL_MEMWREN_O;
     assign MEM_FUNCT3_I     = DECODE_FUNCT3_O;
     assign MEM_INSN_ADDR_I  = DECODE_PC_O;

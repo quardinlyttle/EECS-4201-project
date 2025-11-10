@@ -26,7 +26,7 @@ parameter logic [3:0] PCADD =   4'd10;
 parameter logic [1:0] wbALU =   2'b00;
 parameter logic [1:0] wbMEM =   2'b01;
 parameter logic [1:0] wbPC  =   2'b10;
-parameter logic [1:0] wbOFF  =  2'b11; //Gate writeback/turn it off
+parameter logic [1:0] wbJAL  =  2'b11; //Gate writeback/turn it off
 
 //Instruction Types Opcodes
 parameter logic [6:0] RTYPE =   7'b011_0011;
