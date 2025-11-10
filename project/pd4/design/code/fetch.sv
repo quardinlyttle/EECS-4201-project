@@ -33,14 +33,13 @@ module fetch #(
      */
 
     logic [AWIDTH - 1:0] pc;
-    logic pc_sel;
+    //logic pc_sel;
 
     always_ff @(posedge clk) begin
         if (rst) begin
             pc <= BASEADDR;
-            pc_sel <= 1'b1;
         end else begin
-            if(pc_sel) begin
+            if(~pc_sel_i) begin
                 pc <= pc + 32'd4;
             end
             else begin

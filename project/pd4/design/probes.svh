@@ -26,7 +26,7 @@
 
 `define PROBE_M_PC                MEM_INSN_ADDR_I
 `define PROBE_M_ADDRESS           MEM_ADDR_I
-`define PROBE_M_SIZE_ENCODED      MEM_FUNCT3_I
+`define PROBE_M_SIZE_ENCODED      MEM_FUNCT3_I[1:0]
 `define PROBE_M_DATA              MEM_DATA_O
 
 `define PROBE_W_PC                WB_PC_I

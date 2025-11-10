@@ -215,7 +215,7 @@ module control #(
             //Jump and Link
             JAL: begin
                 wbsel_o =   wbJAL;
-                pcsel_o =   1'b0;
+                pcsel_o =   1'b1;
                 immsel_o =  1'b1;
                 regwren_o = 1'b1;
                 rs1sel_o =  1'b0;
@@ -229,14 +229,14 @@ module control #(
             //Note: this uses the I Type format. Funct 3 is fixed to 0;
             JALR: begin
                 wbsel_o =   wbJAL;
-                pcsel_o =   1'b0;
+                pcsel_o =   1'b1;
                 immsel_o =  1'b1;
                 regwren_o = 1'b1;
                 rs1sel_o =  1'b0;
                 rs2sel_o =  1'b1;
                 memren_o =  1'b0;
                 memwren_o = 1'b0;
-                alusel_o = PCADD;
+                alusel_o =  ADD;
             end
 
             //Load Upper Immedaite
