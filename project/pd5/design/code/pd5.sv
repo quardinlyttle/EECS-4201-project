@@ -136,16 +136,40 @@ module pd5 #(
     logic [DWIDTH-1:0]      DECODE_EXECUTE_RS1DATA;
     logic [DWIDTH-1:0]      DECODE_EXECUTE_RS2DATA;
 
-    // DECODE-EXECUTE CONTROL REGISTERS
-    logic                   DECODE_EXECUTE_PCSEL;
-    logic                   DECODE_EXECUTE_IMMSEL;
-    logic                   DECODE_EXECUTE_REGWREN;
-    logic                   DECODE_EXECUTE_RS1SEL;
-    logic                   DECODE_EXECUTE_RS2SEL;
-    logic                   DECODE_EXECUTE_MEMREN;
-    logic                   DECODE_EXECUTE_MEMWREN;
-    logic [WBSEL_SIZE-1:0]  DECODE_EXECUTE_WBSEL;
-    logic [ALUSEL_SIZE-1:0] DECODE_EXECUTE_ALUSEL;
+    // DE Control Registers
+    logic                   DECODE_EX_PCSEL;
+    logic                   DECODE_EX_IMMSEL;
+    logic                   DECODE_EX_REGWREN;
+    logic                   DECODE_EX_RS1SEL;
+    logic                   DECODE_EX_RS2SEL;
+    logic                   DECODE_EX_MEMREN;
+    logic                   DECODE_EX_MEMWREN;
+    logic [WBSEL_SIZE-1:0]  DECODE_EX_WBSEL;
+    logic [ALUSEL_SIZE-1:0] DECODE_EX_ALUSEL;
+
+    // ======= EXECUTE-MEMORY PIPELINE REGISTERS =======
+    logic [AWIDTH-1:0]      EX_MEM_PC;
+    logic [DWIDTH-1:0]      EX_MEM_ALU_RES;
+    logic [DWIDTH-1:0]      EX_MEM_RS2DATA;
+    logic [FUNCT3_SIZE-1:0] EX_MEM_FUNCT3;
+    logic [OPCODE_SIZE-1:0] EX_MEM_OPCODE;
+    logic [AWIDTH-1:0]      EX_MEM_INSN_ADDR;
+    logic                   EX_MEM_BRTAKEN;
+
+    // EM Control Registers
+    logic                   EX_MEM_MEMWREN;
+    logic [WBSEL_SIZE-1:0]  EX_MEM_WBSEL;
+    logic                   EX_MEM_REGWREN;
+
+    // ======= MEMORY-WRITEBACK PIPELINE REGISTERS =======
+    logic [AWIDTH-1:0]      MEM_WB_PC;
+    logic [DWIDTH-1:0]      MEM_WB_ALU_RES;
+    logic [DWIDTH-1:0]      MEM_WB_MEM_DATA;
+    logic                   MEM_WB_BRTAKEN;
+
+    // MW Control Registers
+    logic [WBSEL_SIZE-1:0]  MEM_WB_WBSEL;
+    logic                   MEM_WB_REGWREN;
 
     // ============================================
     // ============= RV32 MAIN BLOCKS =============
