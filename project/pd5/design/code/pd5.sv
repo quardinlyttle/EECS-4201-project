@@ -77,8 +77,8 @@ module pd5 #(
     logic [DWIDTH-1:0]  MEM_DATA_O;
     logic               MEM_DATA_VLD_O;
     //Instruction Ports
-    logic [AWIDTH-1:0] MEM_INSN_ADDR_I;
-    logic [DWIDTH-1:0] MEM_INSN_O;
+    logic [AWIDTH-1:0]  MEM_INSN_ADDR_I;
+    logic [DWIDTH-1:0]  MEM_INSN_O;
 
     // ======= REGISTER FILE SIGNALS =======
     // RF Inputs
@@ -129,12 +129,13 @@ module pd5 #(
     logic [DWIDTH-1:0]      FETCH_DECODE_INSN;
 
     // ======= DECODE-EXECUTE PIPELINE REGISTERS =======
-    logic [AWIDTH-1:0]      DECODE_EXECUTE_PC;
-    logic [OPCODE_SIZE-1:0] DECODE_EXECUTE_OPCODE;
-    logic [FUNCT3_SIZE-1:0] DECODE_EXECUTE_FUNCT3;
-    logic [FUNCT7_SIZE-1:0] DECODE_EXECUTE_FUNCT7;
-    logic [DWIDTH-1:0]      DECODE_EXECUTE_RS1DATA;
-    logic [DWIDTH-1:0]      DECODE_EXECUTE_RS2DATA;
+    logic [AWIDTH-1:0]      DECODE_EX_PC;
+    logic [DWIDTH-1:0]      DECODE_EX_INSN;
+    logic [OPCODE_SIZE-1:0] DECODE_EX_OPCODE;
+    logic [FUNCT3_SIZE-1:0] DECODE_EX_FUNCT3;
+    logic [FUNCT7_SIZE-1:0] DECODE_EX_FUNCT7;
+    logic [DWIDTH-1:0]      DECODE_EX_RS1DATA;
+    logic [DWIDTH-1:0]      DECODE_EX_RS2DATA;
 
     // DE Control Registers
     logic                   DECODE_EX_PCSEL;
@@ -209,7 +210,7 @@ module pd5 #(
         .insn_o     (FETCH_INSN_O)
     );
     assign FETCH_INSN_O     = MEM_INSN_O;
-    assign FETCH_PC_SEL_I   = CTRL_PCSEL_O;
+    assign FETCH_PC_SEL_I   = EX_FETCH_PCSEL;
     assign FETCH_NEWPC_I    = WB_NEXT_PC_O;
 
     // =========== DECODE MODULE INSTANTIATION ===========
@@ -368,6 +369,82 @@ module pd5 #(
     assign WB_BRTAKEN_I     = ALU_BRTAKEN_O;
 
 
+    // ================================================
+    // =============== PIPELINE CONTROL ===============
+    // ================================================
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            FETCH_DECODE_PC         <= 'b0;
+            FETCH_DECODE_INSN       <= 'b0;
+            DECODE_EXECUTE_PC       <= 'b0;
+            DECODE_EX_OPCODE        <= 'b0;
+            DECODE_EX_FUNCT3        <= 'b0;
+            DECODE_EX_FUNCT7        <= 'b0;
+            DECODE_EX_RS1DATA       <= 'b0;
+            DECODE_EX_RS2DATA       <= 'b0;
+            DECODE_EX_PCSEL         <= 'b0;
+            DECODE_EX_IMMSEL        <= 'b0;
+            DECODE_EX_REGWREN       <= 'b0;
+            DECODE_EX_RS1SEL        <= 'b0;
+            DECODE_EX_RS2SEL        <= 'b0;
+            DECODE_EX_MEMREN        <= 'b0;
+            DECODE_EX_MEMWREN       <= 'b0;
+            DECODE_EX_WBSEL         <= 'b0;
+            DECODE_EX_ALUSEL        <= 'b0;
+            EX_MEM_PC               <= 'b0;
+            EX_MEM_ALU_RES          <= 'b0;
+            EX_MEM_RS2DATA          <= 'b0;
+            EX_MEM_FUNCT3           <= 'b0;
+            EX_MEM_OPCODE           <= 'b0;
+            EX_MEM_INSN_ADDR        <= 'b0;
+            EX_MEM_BRTAKEN          <= 'b0;
+            EX_MEM_MEMWREN          <= 'b0;
+            EX_MEM_WBSEL            <= 'b0;
+            EX_MEM_REGWREN          <= 'b0;
+            MEM_WB_PC               <= 'b0;
+            MEM_WB_ALU_RES          <= 'b0;
+            MEM_WB_MEM_DATA         <= 'b0;
+            MEM_WB_BRTAKEN          <= 'b0;
+            MEM_WB_WBSEL            <= 'b0;
+            MEM_WB_REGWREN          <= 'b0;
+        end else begin
+            FETCH_DECODE_PC         <= FETCH_PC_O;
+            FETCH_DECODE_INSN       <= FETCH_INSN_O;
+            DECODE_EX_PC            <= DECODE_PC_O;
+            DECODE_EX_OPCODE        <= DECODE_OPCODE_O;
+            DECODE_EX_FUNCT3        <= DECODE_FUNCT3_O;
+            DECODE_EX_FUNCT7        <= DECODE_FUNCT7_O;
+            DECODE_EX_RS1DATA       <= DECODE_RS1_O;
+            DECODE_EX_RS2DATA       <= DECODE_RS2_O;
+            DECODE_EX_PCSEL         <= CTRL_PCSEL_O;
+            DECODE_EX_IMMSEL        <= CTRL_IMMSEL_O;
+            DECODE_EX_REGWREN       <= CTRL_REGWREN_O;
+            DECODE_EX_RS1SEL        <= CTRL_RS1SEL_O;
+            DECODE_EX_RS2SEL        <= CTRL_RS2SEL_O;
+            DECODE_EX_MEMREN        <= CTRL_MEMREN_O;
+            DECODE_EX_MEMWREN       <= CTRL_MEMWREN_O;
+            DECODE_EX_WBSEL         <= CTRL_WBSEL_O;
+            DECODE_EX_ALUSEL        <= CTRL_ALUSEL_O;
+            EX_FETCH_PCSEL          <= DECODE_EX_PCSEL; // If taken, need to squash Fetch and Decode
+            EX_MEM_PC               <= DECODE_EX_PC;
+            EX_MEM_ALU_RES          <= ALU_RES_O;
+            EX_MEM_RS2DATA          <= DECODE_EX_RS2DATA;
+            EX_MEM_FUNCT3           <= DECODE_EX_FUNCT3;
+            EX_MEM_OPCODE           <= DECODE_EX_OPCODE;
+            EX_MEM_INSN_ADDR        <= DECODE_PC_O;
+            EX_MEM_BRTAKEN          <= ALU_BRTAKEN_O;
+            EX_MEM_MEMWREN          <= DECODE_EX_MEMWREN;
+            EX_MEM_WBSEL            <= DECODE_EX_WBSEL;
+            EX_MEM_REGWREN          <= DECODE_EX_REGWREN;
+            MEM_WB_PC               <= EX_MEM_PC;
+            MEM_WB_ALU_RES          <= EX_MEM_ALU_RES;
+            MEM_WB_MEM_DATA         <= MEM_DATA_O;
+            MEM_WB_BRTAKEN          <= EX_MEM_BRTAKEN;
+            MEM_WB_WBSEL            <= EX_MEM_WBSEL;
+            MEM_WB_REGWREN          <= EX_MEM_REGWREN;
+        end
+    end
+
     // program termination logic
     reg is_program = 0;
     always_ff @(posedge clk) begin
@@ -377,14 +454,5 @@ module pd5 #(
         // if (is_program && (register_file_0.registers[2] == 32'h01000000 + `MEM_DEPTH)) $finish;
         if (is_program && (register_file_i.rf_registers[2] == 32'h01000000 + `MEM_DEPTH)) $finish;
     end
-
-// program termination logic
-reg is_program = 0;
-always_ff @(posedge clk) begin
-    if (data_out == 32'h00000073) $finish;  // directly terminate if see ecall
-    if (data_out == 32'h00008067) is_program = 1;  // if see ret instruction, it is simple program test
-    // [TODO] Change register_file_0.registers[2] to the appropriate x2 register based on your module instantiations...
-    if (is_program && (register_file_0.registers[2] == 32'h01000000 + `MEM_DEPTH)) $finish;
-end
 
 endmodule : pd5
