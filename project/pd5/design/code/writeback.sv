@@ -12,7 +12,6 @@
  *
  * Outputs:
  * 1) DWIDTH wide write back data write_data_o
- * 2) AWIDTH wide next computed PC next_pc_o
  */
 `include"constants.svh"
  module writeback #(
