@@ -159,9 +159,9 @@ task check_M;
       (^size_encoded !== 1'bx && size_encoded !== dut.core.`PROBE_M_SIZE_ENCODED) ||
       (^data !== 1'bx && data !== dut.core.`PROBE_M_DATA) 
     ) begin
-      $sformat(msg, "M stage mismatch: expected PC=%x, ADDRESS=%x, RW=%x, SIZE_ENCODED=%x, DATA=%x, got PC=%x, ADDRESS=%x, RW=%x, SIZE_ENCODED=%x, DATA=%x", 
+      $sformat(msg, "M stage mismatch: expected PC=%x, ADDRESS=%x, SIZE_ENCODED=%x, DATA=%x, got PC=%x, ADDRESS=%x, SIZE_ENCODED=%x, DATA=%x", 
         pc, address, rw, size_encoded, data,
-        dut.core.`PROBE_M_PC, dut.core.`PROBE_M_ADDRESS, dut.core.`PROBE_M_RW, dut.core.`PROBE_M_SIZE_ENCODED, dut.core.`PROBE_M_DATA);
+        dut.core.`PROBE_M_PC, dut.core.`PROBE_M_ADDRESS, dut.core.`PROBE_M_SIZE_ENCODED, dut.core.`PROBE_M_DATA);
       res = 0;
     end else begin
       res = 1;
