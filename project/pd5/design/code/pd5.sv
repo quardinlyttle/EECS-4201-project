@@ -117,7 +117,7 @@ module pd5 #(
     logic [AWIDTH-1:0]  WB_PC_I;
     logic [DWIDTH-1:0]  WB_ALU_RES_I;
     logic [DWIDTH-1:0]  WB_MEMORY_DATA_I;
-    logic [1:0]         WB_SEL_I;
+    logic [WBSEL_SIZE-1:0]  WB_SEL_I;
     logic               WB_BRTAKEN_I;
     logic [DWIDTH-1:0]  WB_DATA_O;
     logic [AWIDTH-1:0]  WB_NEXT_PC_O;
@@ -196,8 +196,8 @@ module pd5 #(
         .insn_o     (FETCH_INSN_O)
     );
     assign FETCH_INSN_O     = MEM_INSN_O;
-    assign FETCH_PC_SEL_I   = EX_FETCH_PCSEL;
-    assign FETCH_NEWPC_I    = WB_NEXT_PC_O;
+    assign FETCH_PC_SEL_I   = EX_FETCH_PCSEL || ALU_BRTAKEN_O;
+    assign FETCH_NEWPC_I    = ALU_RES_O;
 
     // ****** DECODE STAGE START ******
 
@@ -377,16 +377,16 @@ module pd5 #(
         .alu_res_i(WB_ALU_RES_I),
         .memory_data_i(WB_MEMORY_DATA_I),
         .wbsel_i(WB_SEL_I),
-        .brtaken_i(WB_BRTAKEN_I),
+        // .brtaken_i(WB_BRTAKEN_I),
         .writeback_data_o(WB_DATA_O),
-        .next_pc_o(WB_NEXT_PC_O)
+        // .next_pc_o(WB_NEXT_PC_O)
     );
 
     assign WB_PC_I          = MEM_WB_PC;
     assign WB_ALU_RES_I     = MEM_WB_ALU_RES;
     assign WB_MEMORY_DATA_I = MEM_WB_MEM_DATA;
     assign WB_SEL_I         = MEM_WB_WBSEL;
-    assign WB_BRTAKEN_I     = MEM_WB_BRTAKEN; // will probably ignore this since branch is done in execute
+    // assign WB_BRTAKEN_I     = MEM_WB_BRTAKEN; // will probably ignore this since branch is done in execute
 
 
     // ================================================

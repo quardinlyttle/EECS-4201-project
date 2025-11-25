@@ -26,23 +26,17 @@ module fetch #(
 	output logic [AWIDTH - 1:0] pc_o,
     output logic [DWIDTH - 1:0] insn_o
 );
-    /*
-     * Process definitions to be filled by
-     * student below...
-     */
 
     logic [AWIDTH - 1:0] pc;
-    //logic pc_sel;
 
     always_ff @(posedge clk) begin
         if (rst) begin
             pc <= BASEADDR;
         end else begin
-            if(~pc_sel_i) begin
-                pc <= pc + 32'd4;
-            end
-            else begin
+            if(pc_sel_i) begin
                 pc <= newpc_i;
+            end else begin
+                pc <= pc + 32'd4;
             end
         end
     end

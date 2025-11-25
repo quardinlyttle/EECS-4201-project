@@ -18,11 +18,11 @@
     parameter int DWIDTH=32,
     parameter int AWIDTH=32
  )(
-     input logic [AWIDTH-1:0] pc_i,
-     input logic [DWIDTH-1:0] alu_res_i,
-     input logic [DWIDTH-1:0] memory_data_i,
-     input logic brtaken_i,
-     output logic [DWIDTH-1:0] writeback_data_o
+     input  logic [AWIDTH-1:0]      pc_i,
+     input  logic [DWIDTH-1:0]      alu_res_i,
+     input  logic [DWIDTH-1:0]      memory_data_i,
+     input  logic [WBSEL_SIZE-1:0]  wbsel_i,
+     output logic [DWIDTH-1:0]      writeback_data_o
  );
 
     wire [AWIDTH-1:0] pc_inc;
@@ -32,12 +32,9 @@
         case(wbsel_i)
             wbALU           : writeback_data_o = alu_res_i;
             wbMEM           : writeback_data_o = memory_data_i;
-            wbPC            : writeback_data_o = pc_i;
             wbJAL           : writeback_data_o = pc_inc;
             default         : writeback_data_o = 32'd0;
         endcase
     end
-
-    assign next_pc_o = (brtaken_i || (wbsel_i == wbJAL)) ? alu_res_i : pc_inc;
 
 endmodule : writeback
