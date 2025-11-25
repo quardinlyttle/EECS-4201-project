@@ -118,7 +118,6 @@ module pd5 #(
     logic [DWIDTH-1:0]  WB_ALU_RES_I;
     logic [DWIDTH-1:0]  WB_MEMORY_DATA_I;
     logic [WBSEL_SIZE-1:0]  WB_SEL_I;
-    logic               WB_BRTAKEN_I;
     logic [DWIDTH-1:0]  WB_DATA_O;
     logic [AWIDTH-1:0]  WB_NEXT_PC_O;
 
@@ -158,7 +157,6 @@ module pd5 #(
     logic [DWIDTH-1:0]      EX_MEM_RS2DATA;
     logic [FUNCT3_SIZE-1:0] EX_MEM_FUNCT3;
     logic [OPCODE_SIZE-1:0] EX_MEM_OPCODE;
-    logic                   EX_MEM_BRTAKEN;
     logic [RADDR_SIZE-1:0]  EX_MEM_RD;
 
     // EM Control Registers
@@ -173,7 +171,6 @@ module pd5 #(
     logic [AWIDTH-1:0]      MEM_WB_PC;
     logic [DWIDTH-1:0]      MEM_WB_ALU_RES;
     logic [DWIDTH-1:0]      MEM_WB_MEM_DATA;
-    logic                   MEM_WB_BRTAKEN;
     logic                   MEM_WB_RD;
 
     // MW Control Registers
@@ -413,14 +410,12 @@ module pd5 #(
             EX_MEM_RS2DATA          <= 'b0;
             EX_MEM_FUNCT3           <= 'b0;
             EX_MEM_OPCODE           <= 'b0;
-            EX_MEM_BRTAKEN          <= 'b0;
             EX_MEM_MEMWREN          <= 'b0;
             EX_MEM_WBSEL            <= 'b0;
             EX_MEM_REGWREN          <= 'b0;
             MEM_WB_PC               <= 'b0;
             MEM_WB_ALU_RES          <= 'b0;
             MEM_WB_MEM_DATA         <= 'b0;
-            MEM_WB_BRTAKEN          <= 'b0;
             MEM_WB_WBSEL            <= 'b0;
             MEM_WB_REGWREN          <= 'b0;
         end else begin
@@ -449,7 +444,6 @@ module pd5 #(
             EX_MEM_RS2DATA          <= DECODE_EX_RS2DATA;
             EX_MEM_FUNCT3           <= DECODE_EX_FUNCT3;
             EX_MEM_OPCODE           <= DECODE_EX_OPCODE;
-            EX_MEM_BRTAKEN          <= ALU_BRTAKEN_O;
             EX_MEM_RD               <= DECODE_EX_RD;
             EX_MEM_MEMWREN          <= DECODE_EX_MEMWREN;
             EX_MEM_WBSEL            <= DECODE_EX_WBSEL;
@@ -457,7 +451,6 @@ module pd5 #(
             MEM_WB_PC               <= EX_MEM_PC;
             MEM_WB_ALU_RES          <= EX_MEM_ALU_RES;
             MEM_WB_MEM_DATA         <= MEM_DATA_O;
-            MEM_WB_BRTAKEN          <= EX_MEM_BRTAKEN;
             MEM_WB_RD               <= EX_MEM_RD;
             MEM_WB_WBSEL            <= EX_MEM_WBSEL;
             MEM_WB_REGWREN          <= EX_MEM_REGWREN;
