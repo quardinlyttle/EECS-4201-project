@@ -13,7 +13,7 @@ export SIM_DIR     = $(SIM_ROOT)/test_pd
 all: make_sim_dir compile run
 
 # define parameters
-MEM_PATH              ?= $(CL_ROOT)/verif/data/${TEST}.x
+MEM_PATH              ?= $(CL_ROOT)/verif/${TEST}
 MEM_PATH_NOT_DIR			:= $(notdir $(MEM_PATH))
 LINE_COUNT            ?= $(shell echo `wc -l < $(MEM_PATH)`)
 MEM_PATH_STR          ?= \"$(abspath $(MEM_PATH))\"
@@ -42,10 +42,10 @@ ifeq ($(WARN), 1)
 WARN_OUTPUT = 2>&1 | tee output.log
 WARN_CHECK  = cat $(SIM_DIR)/output.log | bash $(CL_ROOT)/verif/scripts/check_warnings.sh
 else
-WARN_OUTPUT = 
-WARN_CHECK  = 
+WARN_OUTPUT =
+WARN_CHECK  =
 endif
 
-EXTRA_PACKAGE_FILES := 
+EXTRA_PACKAGE_FILES :=
 
 include ${PROJECT_ROOT}/common/verif/tb/scripts/Makefile.common.inc

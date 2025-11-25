@@ -105,8 +105,8 @@ module pd5 #(
 
     // ======= BRANCH COMPARATOR SIGNALS =======
     // BC Inputs
-    logic               BC_OPCODE_I;
-    logic               BC_FUNCT3_I;
+    logic [OPCODE_SIZE-1:0] BC_OPCODE_I;
+    logic [FUNCT3_SIZE-1:0] BC_FUNCT3_I;
     logic [DWIDTH-1:0]  BC_RS1_I;
     logic [DWIDTH-1:0]  BC_RS2_I;
     // BC Outputs
@@ -171,7 +171,7 @@ module pd5 #(
     logic [AWIDTH-1:0]      MEM_WB_PC;
     logic [DWIDTH-1:0]      MEM_WB_ALU_RES;
     logic [DWIDTH-1:0]      MEM_WB_MEM_DATA;
-    logic                   MEM_WB_RD;
+    logic [RADDR_SIZE-1:0]  MEM_WB_RD;
 
     // MW Control Registers
     logic [WBSEL_SIZE-1:0]  MEM_WB_WBSEL;
@@ -373,7 +373,7 @@ module pd5 #(
         .alu_res_i(WB_ALU_RES_I),
         .memory_data_i(WB_MEMORY_DATA_I),
         .wbsel_i(WB_SEL_I),
-        .writeback_data_o(WB_DATA_O),
+        .writeback_data_o(WB_DATA_O)
     );
     assign WB_PC_I          = MEM_WB_PC;
     assign WB_ALU_RES_I     = MEM_WB_ALU_RES;
