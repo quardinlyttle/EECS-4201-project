@@ -94,6 +94,8 @@ module pd5 #(
     // ======= ALU SIGNALS =======
     // ALU Inputs
     logic [AWIDTH-1:0]  ALU_PC_I;
+    logic [FUNCT3_SIZE-1:0] ALU_FUNCT3_I;
+    logic [FUNCT7_SIZE-1:0] ALU_FUNCT7_I;
     logic [DWIDTH-1:0]  ALU_RS1_I;
     logic [DWIDTH-1:0]  ALU_RS2_I;
     logic [3:0]         ALU_SEL_I;
@@ -136,6 +138,7 @@ module pd5 #(
     logic [FUNCT7_SIZE-1:0] DECODE_EX_FUNCT7;
     logic [DWIDTH-1:0]      DECODE_EX_RS1DATA;
     logic [DWIDTH-1:0]      DECODE_EX_RS2DATA;
+    logic [DWIDTH-1:0]      DECODE_EX_IMMDATA;
 
     // DE Control Registers
     logic                   DECODE_EX_PCSEL;
@@ -176,29 +179,7 @@ module pd5 #(
     // ============= RV32 MAIN BLOCKS =============
     // ============================================
 
-    // =========== CONTROL MODULE INSTANTIATION ===========
-    control #(
-        .DWIDTH     (DWIDTH)
-    ) ctrl_inst (
-        .insn_i     (CTRL_INSN_I),
-        .opcode_i   (CTRL_OPCODE_I),
-        .funct7_i   (CTRL_FUNCT7_I),
-        .funct3_i   (CTRL_FUNCT3_I),
-
-        .pcsel_o    (CTRL_PCSEL_O),
-        .immsel_o   (CTRL_IMMSEL_O),
-        .regwren_o  (CTRL_REGWREN_O),
-        .rs1sel_o   (CTRL_RS1SEL_O),
-        .rs2sel_o   (CTRL_RS2SEL_O),
-        .memren_o   (CTRL_MEMREN_O),
-        .memwren_o  (CTRL_MEMWREN_O),
-        .wbsel_o    (CTRL_WBSEL_O),
-        .alusel_o   (CTRL_ALUSEL_O)
-    );
-    assign CTRL_INSN_I      = DECODE_INSN_O;
-    assign CTRL_OPCODE_I    = DECODE_OPCODE_O;
-    assign CTRL_FUNCT7_I    = DECODE_FUNCT7_O;
-    assign CTRL_FUNCT3_I    = DECODE_FUNCT3_O;
+    // ****** FETCH STAGE START ******
 
     // =========== FETCH MODULE INSTANTIATION ===========
     fetch fetch_i(
@@ -212,6 +193,8 @@ module pd5 #(
     assign FETCH_INSN_O     = MEM_INSN_O;
     assign FETCH_PC_SEL_I   = EX_FETCH_PCSEL;
     assign FETCH_NEWPC_I    = WB_NEXT_PC_O;
+
+    // ****** DECODE STAGE START ******
 
     // =========== DECODE MODULE INSTANTIATION ===========
     decode decode_i(
@@ -231,8 +214,8 @@ module pd5 #(
         .imm_o      (DECODE_IMM_O)
     );
     // Assign Decode Inputs
-    assign DECODE_INSN_I    = FETCH_INSN_O;
-    assign DECODE_PC_I      = FETCH_PC_O;
+    assign DECODE_INSN_I    = FETCH_DECODE_INSN;
+    assign DECODE_PC_I      = FETCH_DECODE_PC;
     assign DECODE_IMM_O     = IGEN_IMM_O;
 
     // =========== IMMEDIATE GENERATOR MODULE INSTANTIATION ===========
@@ -268,25 +251,52 @@ module pd5 #(
     assign RF_DATAWB_I      = WB_DATA_O;
     assign RF_REGWREN_I     = CTRL_REGWREN_O;
 
+    // =========== CONTROL MODULE INSTANTIATION ===========
+    control #(
+        .DWIDTH     (DWIDTH)
+    ) ctrl_inst (
+        .insn_i     (CTRL_INSN_I),
+        .opcode_i   (CTRL_OPCODE_I),
+        .funct7_i   (CTRL_FUNCT7_I),
+        .funct3_i   (CTRL_FUNCT3_I),
+
+        .pcsel_o    (CTRL_PCSEL_O),
+        .immsel_o   (CTRL_IMMSEL_O),
+        .regwren_o  (CTRL_REGWREN_O),
+        .rs1sel_o   (CTRL_RS1SEL_O),
+        .rs2sel_o   (CTRL_RS2SEL_O),
+        .memren_o   (CTRL_MEMREN_O),
+        .memwren_o  (CTRL_MEMWREN_O),
+        .wbsel_o    (CTRL_WBSEL_O),
+        .alusel_o   (CTRL_ALUSEL_O)
+    );
+    assign CTRL_INSN_I      = DECODE_INSN_O;
+    assign CTRL_OPCODE_I    = DECODE_OPCODE_O;
+    assign CTRL_FUNCT7_I    = DECODE_FUNCT7_O;
+    assign CTRL_FUNCT3_I    = DECODE_FUNCT3_O;
+
+    // ****** EXECUTE STAGE START ******
+
     // =========== BRANCH COMPARATOR MODULE INSTANTIATION ===========
     branch_control branching(
-        .opcode_i(DECODE_OPCODE_O),
-        .funct3_i(DECODE_FUNCT3_O),
-        .rs1_i(RF_RS1DATA_O),
-        .rs2_i(RF_RS2DATA_O),
+        .opcode_i(BC_OPCODE_I),
+        .funct3_i(BC_FUNCT3_I),
+        .rs1_i(BC_RS1_I),
+        .rs2_i(BC_RS2_I),
         .breq_o(BC_BREQ_O),
         .brlt_o(BC_BRLT_O)
     );
     // BC Input Assignments
-    assign BC_OPCODE_I      = DECODE_OPCODE_O;
-    assign BC_FUNCT3_I      = DECODE_FUNCT3_O;
-    assign BC_RS1_I         = RF_RS1DATA_O;
-    assign BC_RS2_I         = RF_RS2DATA_O;
+    assign BC_OPCODE_I      = DECODE_EX_OPCODE;
+    assign BC_FUNCT3_I      = DECODE_EX_FUNCT3;
+    assign BC_RS1_I         = DECODE_EX_RS1DATA;
+    assign BC_RS2_I         = DECODE_EX_RS2DATA;
 
     // Branch Taken Computation
+    // TODO: Branching needs to be done here
     always_comb begin: BRANCHER
-        if(DECODE_OPCODE_O==BRANCH) begin
-            case(DECODE_FUNCT3_O)
+        if(DECODE_EX_OPCODE==BRANCH) begin
+            case(DECODE_EX_FUNCT3)
             'h0: ALU_BRTAKEN_O = BC_BREQ_O;
             'h1: ALU_BRTAKEN_O = ~BC_BREQ_O;
             'h4, 'h6: ALU_BRTAKEN_O = BC_BRLT_O;
@@ -303,8 +313,8 @@ module pd5 #(
         .AWIDTH(AWIDTH)
     )alu_e(
         .pc_i       (ALU_PC_I),
-        .funct3_i   (DECODE_FUNCT3_O),
-        .funct7_i   (DECODE_FUNCT7_O),
+        .funct3_i   (ALU_FUNCT3_I),
+        .funct7_i   (ALU_FUNCT7_I),
         .rs1_i      (ALU_RS1_I),
         .rs2_i      (ALU_RS2_I),
         .alusel_i   (ALU_SEL_I),
@@ -312,10 +322,14 @@ module pd5 #(
         .brtaken_o  (ALU_BRTAKEN_O) // Dummy
     );
     // Assign ALU inputs
-    assign ALU_PC_I     = DECODE_PC_O;
-    assign ALU_RS1_I    = RF_RS1DATA_O;
-    assign ALU_RS2_I    = (CTRL_IMMSEL_O)? IGEN_IMM_O : RF_RS2DATA_O;
-    assign ALU_SEL_I    = CTRL_ALUSEL_O;
+    assign ALU_PC_I     = DECODE_EX_PC;
+    assign ALU_FUNCT3_I = DECODE_EX_FUNCT3;
+    assign ALU_FUNCT7_I = DECODE_EX_FUNCT7;
+    assign ALU_RS1_I    = DECODE_EX_RS1DATA;
+    assign ALU_RS2_I    = (DECODE_EX_IMMSEL)? DECODE_EX_IMMDATA : DECODE_EX_RS2DATA;
+    assign ALU_SEL_I    = DECODE_EX_ALUSEL;
+
+    // ****** MEMORY STAGE START ******
 
     // =========== INSTRUCTION MEMORY MODULE INSTANTIATION ===========
     memory #(
@@ -340,13 +354,15 @@ module pd5 #(
         .data_vld_o (MEM_DATA_VLD_O)
     );
     // Assign Instruction Memory Inputs
-    assign MEM_ADDR_I       = ALU_RES_O;
-    assign MEM_DATA_I       = RF_RS2DATA_O;
+    assign MEM_ADDR_I       = EX_MEM_ALU_RES;
+    assign MEM_DATA_I       = EX_MEM_RS2DATA;
     assign MEM_READ_EN_I    = 1'b1;
-    assign MEM_WRITE_EN_I   = CTRL_MEMWREN_O;
-    assign MEM_FUNCT3_I     = DECODE_FUNCT3_O;
-    assign MEM_OPCODE_I     = DECODE_OPCODE_O;
+    assign MEM_WRITE_EN_I   = EX_MEM_MEMWREN;
+    assign MEM_FUNCT3_I     = EX_MEM_FUNCT3;
+    assign MEM_OPCODE_I     = EX_MEM_OPCODE;
     assign MEM_INSN_ADDR_I  = DECODE_PC_O;
+
+    // ****** WRITEBACK STAGE START ******
 
     // =========== WRITEBACK MODULE INSTANTIATION ===========
     writeback #(
@@ -362,11 +378,11 @@ module pd5 #(
         .next_pc_o(WB_NEXT_PC_O)
     );
 
-    assign WB_PC_I          = DECODE_PC_O;
-    assign WB_ALU_RES_I     = ALU_RES_O;
-    assign WB_MEMORY_DATA_I = MEM_DATA_O;
-    assign WB_SEL_I         = CTRL_WBSEL_O;
-    assign WB_BRTAKEN_I     = ALU_BRTAKEN_O;
+    assign WB_PC_I          = MEM_WB_PC;
+    assign WB_ALU_RES_I     = MEM_WB_ALU_RES;
+    assign WB_MEMORY_DATA_I = MEM_WB_MEM_DATA;
+    assign WB_SEL_I         = MEM_WB_WBSEL;
+    assign WB_BRTAKEN_I     = MEM_WB_BRTAKEN; // will probably ignore this since branch is done in execute
 
 
     // ================================================
@@ -414,8 +430,9 @@ module pd5 #(
             DECODE_EX_OPCODE        <= DECODE_OPCODE_O;
             DECODE_EX_FUNCT3        <= DECODE_FUNCT3_O;
             DECODE_EX_FUNCT7        <= DECODE_FUNCT7_O;
-            DECODE_EX_RS1DATA       <= DECODE_RS1_O;
-            DECODE_EX_RS2DATA       <= DECODE_RS2_O;
+            DECODE_EX_RS1DATA       <= RF_RS1DATA_O;
+            DECODE_EX_RS2DATA       <= RF_RS2DATA_O;
+            DECODE_EX_IMMDATA       <= DECODE_IMM_O;
             DECODE_EX_PCSEL         <= CTRL_PCSEL_O;
             DECODE_EX_IMMSEL        <= CTRL_IMMSEL_O;
             DECODE_EX_REGWREN       <= CTRL_REGWREN_O;
@@ -454,14 +471,5 @@ module pd5 #(
         // if (is_program && (register_file_0.registers[2] == 32'h01000000 + `MEM_DEPTH)) $finish;
         if (is_program && (register_file_i.rf_registers[2] == 32'h01000000 + `MEM_DEPTH)) $finish;
     end
-
-// program termination logic
-reg is_program = 0;
-always_ff @(posedge clk) begin
-    if (data_out == 32'h00000073) $finish;  // directly terminate if see ecall
-    if (data_out == 32'h00008067) is_program = 1;  // if see ret instruction, it is simple program test
-    // [TODO] Change register_file_0.registers[2] to the appropriate x2 register based on your module instantiations...
-    if (is_program && (register_file_0.registers[2] == 32'h01000000 + `MEM_DEPTH)) $finish;
-end
 
 endmodule : pd5
