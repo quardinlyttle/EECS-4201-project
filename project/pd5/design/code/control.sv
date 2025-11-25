@@ -201,7 +201,7 @@ module control #(
             //Branch Instructions
             BRANCH: begin
                 wbsel_o =   wbALU;
-                pcsel_o =   1'b1;
+                pcsel_o =   1'b0; // Branch Comparator will make switch if need be
                 immsel_o =  1'b1;
                 regwren_o = 1'b0;
                 rs1sel_o =  1'b0;
@@ -254,7 +254,7 @@ module control #(
             //Add Upper Immediate to PC
             AUIPC: begin
                 wbsel_o =   wbALU;
-                pcsel_o =   1'b1;
+                pcsel_o =   1'b0; // AUIPC doesnt change the active PC though
                 immsel_o =  1'b1;
                 regwren_o = 1'b1;
                 rs1sel_o =  1'b0;

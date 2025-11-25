@@ -1,41 +1,41 @@
 // ----  Probes  ----
-//`define PROBE_F_PC          // ?? 
-//`define PROBE_F_INSN        // ?? 
+`define PROBE_F_PC                      FETCH_PC_O
+`define PROBE_F_INSN                    FETCH_INSN_O
 
-//`define PROBE_D_PC          // ??
-//`define PROBE_D_OPCODE      // ??
-//`define PROBE_D_RD          // ??
-//`define PROBE_D_FUNCT3      // ??
-//`define PROBE_D_RS1         // ??
-//`define PROBE_D_RS2         // ??
-//`define PROBE_D_FUNCT7      // ??
-//`define PROBE_D_IMM         // ??
-//`define PROBE_D_SHAMT       // ??
+`define PROBE_D_PC                      DECODE_PC_I
+`define PROBE_D_OPCODE                  DECODE_OPCODE_O
+`define PROBE_D_RD                      DECODE_RD_O
+`define PROBE_D_FUNCT3                  DECODE_FUNCT3_O
+`define PROBE_D_RS1                     DECODE_RS1_O
+`define PROBE_D_RS2                     DECODE_RS2_O
+`define PROBE_D_FUNCT7                  DECODE_FUNCT7_O
+`define PROBE_D_IMM                     DECODE_IMM_O
+`define PROBE_D_SHAMT                   DECODE_SHAMT_O
 
-//`define PROBE_R_WRITE_ENABLE      // ??
-//`define PROBE_R_WRITE_DESTINATION // ??
-//`define PROBE_R_WRITE_DATA        // ??
-//`define PROBE_R_READ_RS1          // ??
-//`define PROBE_R_READ_RS2          // ??
-//`define PROBE_R_READ_RS1_DATA     // ??
-//`define PROBE_R_READ_RS2_DATA     // ??
+`define PROBE_R_WRITE_ENABLE            RF_REGWREN_I
+`define PROBE_R_WRITE_DESTINATION       RF_RD_I
+`define PROBE_R_WRITE_DATA              RF_DATAWB_I
+`define PROBE_R_READ_RS1                RF_RS1_I
+`define PROBE_R_READ_RS2                RF_RS2_I
+`define PROBE_R_READ_RS1_DATA           RF_RS1DATA_O
+`define PROBE_R_READ_RS2_DATA           RF_RS2DATA_O
 
-//`define PROBE_E_PC                // ??
-//`define PROBE_E_ALU_RES           // ??
-//`define PROBE_E_BR_TAKEN          // ??
+`define PROBE_E_PC                      ALU_PC_I
+`define PROBE_E_ALU_RES                 ALU_RES_O
+`define PROBE_E_BR_TAKEN                ALU_BRTAKEN_O
 
-//`define PROBE_M_PC                // ??
-//`define PROBE_M_ADDRESS           // ??
-//`define PROBE_M_SIZE_ENCODED      // ??
-//`define PROBE_M_DATA              // ??
+`define PROBE_M_PC                      EX_MEM_PC
+`define PROBE_M_ADDRESS                 MEM_ADDR_I
+`define PROBE_M_SIZE_ENCODED            MEM_FUNCT3_I[1:0]
+`define PROBE_M_DATA                    MEM_DATA_O
 
-//`define PROBE_W_PC                // ??
-//`define PROBE_W_ENABLE            // ??
-//`define PROBE_W_DESTINATION       // ??
-//`define PROBE_W_DATA              // ??
+`define PROBE_W_PC                      WB_PC_I
+`define PROBE_W_ENABLE                  MEM_WB_REGWREN
+`define PROBE_W_DESTINATION             MEM_WB_RD
+`define PROBE_W_DATA                    WB_DATA_O
 
 // ----  Probes  ----
 
 // ----  Top module  ----
-`define TOP_MODULE  pd5 
+`define TOP_MODULE  pd5
 // ----  Top module  ----
