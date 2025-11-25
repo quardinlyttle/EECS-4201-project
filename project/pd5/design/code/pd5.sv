@@ -139,6 +139,7 @@ module pd5 #(
     logic [DWIDTH-1:0]      DECODE_EX_RS1DATA;
     logic [DWIDTH-1:0]      DECODE_EX_RS2DATA;
     logic [DWIDTH-1:0]      DECODE_EX_IMMDATA;
+    logic [RADDR_SIZE-1:0]  DECODE_EX_RD;
 
     // DE Control Registers
     logic                   DECODE_EX_PCSEL;
@@ -157,19 +158,23 @@ module pd5 #(
     logic [DWIDTH-1:0]      EX_MEM_RS2DATA;
     logic [FUNCT3_SIZE-1:0] EX_MEM_FUNCT3;
     logic [OPCODE_SIZE-1:0] EX_MEM_OPCODE;
-    logic [AWIDTH-1:0]      EX_MEM_INSN_ADDR;
     logic                   EX_MEM_BRTAKEN;
+    logic [RADDR_SIZE-1:0]  EX_MEM_RD;
 
     // EM Control Registers
     logic                   EX_MEM_MEMWREN;
     logic [WBSEL_SIZE-1:0]  EX_MEM_WBSEL;
     logic                   EX_MEM_REGWREN;
 
+    // Execute-Fetch Registers for branching
+    logic                   EX_FETCH_PCSEL;
+
     // ======= MEMORY-WRITEBACK PIPELINE REGISTERS =======
     logic [AWIDTH-1:0]      MEM_WB_PC;
     logic [DWIDTH-1:0]      MEM_WB_ALU_RES;
     logic [DWIDTH-1:0]      MEM_WB_MEM_DATA;
     logic                   MEM_WB_BRTAKEN;
+    logic                   MEM_WB_RD;
 
     // MW Control Registers
     logic [WBSEL_SIZE-1:0]  MEM_WB_WBSEL;
@@ -246,10 +251,9 @@ module pd5 #(
     // Assign Register File Inputs
     assign RF_RS1_I         = DECODE_RS1_O;
     assign RF_RS2_I         = DECODE_RS2_O;
-    assign RF_RD_I          = DECODE_RD_O;
-    // assign RF_DATAWB_I      = ALU_RES_O;
+    assign RF_RD_I          = MEM_WB_RD;
     assign RF_DATAWB_I      = WB_DATA_O;
-    assign RF_REGWREN_I     = CTRL_REGWREN_O;
+    assign RF_REGWREN_I     = MEM_WB_REGWREN;
 
     // =========== CONTROL MODULE INSTANTIATION ===========
     control #(
@@ -360,7 +364,7 @@ module pd5 #(
     assign MEM_WRITE_EN_I   = EX_MEM_MEMWREN;
     assign MEM_FUNCT3_I     = EX_MEM_FUNCT3;
     assign MEM_OPCODE_I     = EX_MEM_OPCODE;
-    assign MEM_INSN_ADDR_I  = DECODE_PC_O;
+    assign MEM_INSN_ADDR_I  = FETCH_PC_O;
 
     // ****** WRITEBACK STAGE START ******
 
@@ -392,12 +396,14 @@ module pd5 #(
         if (reset) begin
             FETCH_DECODE_PC         <= 'b0;
             FETCH_DECODE_INSN       <= 'b0;
-            DECODE_EXECUTE_PC       <= 'b0;
+            DECODE_EX_PC            <= 'b0;
             DECODE_EX_OPCODE        <= 'b0;
             DECODE_EX_FUNCT3        <= 'b0;
             DECODE_EX_FUNCT7        <= 'b0;
             DECODE_EX_RS1DATA       <= 'b0;
             DECODE_EX_RS2DATA       <= 'b0;
+            DECODE_EX_IMMDATA       <= 'b0;
+            DECODE_EX_RD            <= 'b0;
             DECODE_EX_PCSEL         <= 'b0;
             DECODE_EX_IMMSEL        <= 'b0;
             DECODE_EX_REGWREN       <= 'b0;
@@ -407,12 +413,12 @@ module pd5 #(
             DECODE_EX_MEMWREN       <= 'b0;
             DECODE_EX_WBSEL         <= 'b0;
             DECODE_EX_ALUSEL        <= 'b0;
+            EX_FETCH_PCSEL          <= 'b0;
             EX_MEM_PC               <= 'b0;
             EX_MEM_ALU_RES          <= 'b0;
             EX_MEM_RS2DATA          <= 'b0;
             EX_MEM_FUNCT3           <= 'b0;
             EX_MEM_OPCODE           <= 'b0;
-            EX_MEM_INSN_ADDR        <= 'b0;
             EX_MEM_BRTAKEN          <= 'b0;
             EX_MEM_MEMWREN          <= 'b0;
             EX_MEM_WBSEL            <= 'b0;
@@ -433,6 +439,7 @@ module pd5 #(
             DECODE_EX_RS1DATA       <= RF_RS1DATA_O;
             DECODE_EX_RS2DATA       <= RF_RS2DATA_O;
             DECODE_EX_IMMDATA       <= DECODE_IMM_O;
+            DECODE_EX_RD            <= DECODE_RD_O;
             DECODE_EX_PCSEL         <= CTRL_PCSEL_O;
             DECODE_EX_IMMSEL        <= CTRL_IMMSEL_O;
             DECODE_EX_REGWREN       <= CTRL_REGWREN_O;
@@ -448,8 +455,8 @@ module pd5 #(
             EX_MEM_RS2DATA          <= DECODE_EX_RS2DATA;
             EX_MEM_FUNCT3           <= DECODE_EX_FUNCT3;
             EX_MEM_OPCODE           <= DECODE_EX_OPCODE;
-            EX_MEM_INSN_ADDR        <= DECODE_PC_O;
             EX_MEM_BRTAKEN          <= ALU_BRTAKEN_O;
+            EX_MEM_RD               <= DECODE_EX_RD;
             EX_MEM_MEMWREN          <= DECODE_EX_MEMWREN;
             EX_MEM_WBSEL            <= DECODE_EX_WBSEL;
             EX_MEM_REGWREN          <= DECODE_EX_REGWREN;
@@ -457,6 +464,7 @@ module pd5 #(
             MEM_WB_ALU_RES          <= EX_MEM_ALU_RES;
             MEM_WB_MEM_DATA         <= MEM_DATA_O;
             MEM_WB_BRTAKEN          <= EX_MEM_BRTAKEN;
+            MEM_WB_RD               <= EX_MEM_RD;
             MEM_WB_WBSEL            <= EX_MEM_WBSEL;
             MEM_WB_REGWREN          <= EX_MEM_REGWREN;
         end

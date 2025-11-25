@@ -57,5 +57,6 @@ parameter int           FUNCT3_SIZE     = 3;
 parameter int           FUNCT7_SIZE     = 7;
 parameter int           WBSEL_SIZE      = 2;
 parameter int           ALUSEL_SIZE     = 4;
+parameter int           RADDR_SIZE      = 5;
 
 `endif
