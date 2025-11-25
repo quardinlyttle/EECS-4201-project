@@ -297,7 +297,6 @@ module pd5 #(
     assign BC_RS2_I         = DECODE_EX_RS2DATA;
 
     // Branch Taken Computation
-    // TODO: Branching needs to be done here
     always_comb begin: BRANCHER
         if(DECODE_EX_OPCODE==BRANCH) begin
             case(DECODE_EX_FUNCT3)
@@ -377,17 +376,12 @@ module pd5 #(
         .alu_res_i(WB_ALU_RES_I),
         .memory_data_i(WB_MEMORY_DATA_I),
         .wbsel_i(WB_SEL_I),
-        // .brtaken_i(WB_BRTAKEN_I),
         .writeback_data_o(WB_DATA_O),
-        // .next_pc_o(WB_NEXT_PC_O)
     );
-
     assign WB_PC_I          = MEM_WB_PC;
     assign WB_ALU_RES_I     = MEM_WB_ALU_RES;
     assign WB_MEMORY_DATA_I = MEM_WB_MEM_DATA;
     assign WB_SEL_I         = MEM_WB_WBSEL;
-    // assign WB_BRTAKEN_I     = MEM_WB_BRTAKEN; // will probably ignore this since branch is done in execute
-
 
     // ================================================
     // =============== PIPELINE CONTROL ===============
