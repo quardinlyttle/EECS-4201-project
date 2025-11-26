@@ -41,7 +41,7 @@
     assign rs2data_o = (rs2_i == 5'b0) ? '0 : rf_registers[rs2_i];
 
     // Sequential Write Logic
-    always_ff @(posedge clk) begin : rf_write_logic
+    always_ff @(negedge clk) begin : rf_write_logic
         if (rst) begin
             // Reset all registers to default predictable state
             for (int i = 3; i<32; i++) begin

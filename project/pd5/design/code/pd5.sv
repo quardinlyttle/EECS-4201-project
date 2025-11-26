@@ -131,7 +131,6 @@ module pd5 #(
 
     // ======= DECODE-EXECUTE PIPELINE REGISTERS =======
     logic [AWIDTH-1:0]      DECODE_EX_PC;
-    logic [DWIDTH-1:0]      DECODE_EX_INSN;
     logic [OPCODE_SIZE-1:0] DECODE_EX_OPCODE;
     logic [FUNCT3_SIZE-1:0] DECODE_EX_FUNCT3;
     logic [FUNCT7_SIZE-1:0] DECODE_EX_FUNCT7;
