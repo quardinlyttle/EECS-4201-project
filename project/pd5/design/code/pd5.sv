@@ -164,9 +164,6 @@ module pd5 #(
     logic [WBSEL_SIZE-1:0]  EX_MEM_WBSEL;
     logic                   EX_MEM_REGWREN;
 
-    // Execute-Fetch Registers for branching
-    logic                   EX_FETCH_PCSEL;
-
     // ======= MEMORY-WRITEBACK PIPELINE REGISTERS =======
     logic [AWIDTH-1:0]      MEM_WB_PC;
     logic [DWIDTH-1:0]      MEM_WB_ALU_RES;
@@ -193,7 +190,7 @@ module pd5 #(
         .insn_o     (FETCH_INSN_O)
     );
     assign FETCH_INSN_O     = MEM_INSN_O;
-    assign FETCH_PC_SEL_I   = EX_FETCH_PCSEL || ALU_BRTAKEN_O;
+    assign FETCH_PC_SEL_I   = DECODE_EX_PCSEL || ALU_BRTAKEN_O;
     assign FETCH_NEWPC_I    = ALU_RES_O;
 
     // ****** DECODE STAGE START ******
@@ -404,7 +401,6 @@ module pd5 #(
             DECODE_EX_MEMWREN       <= 'b0;
             DECODE_EX_WBSEL         <= 'b0;
             DECODE_EX_ALUSEL        <= 'b0;
-            EX_FETCH_PCSEL          <= 'b0;
             EX_MEM_PC               <= 'b0;
             EX_MEM_ALU_RES          <= 'b0;
             EX_MEM_RS2DATA          <= 'b0;
@@ -438,7 +434,6 @@ module pd5 #(
             DECODE_EX_MEMWREN       <= CTRL_MEMWREN_O;
             DECODE_EX_WBSEL         <= CTRL_WBSEL_O;
             DECODE_EX_ALUSEL        <= CTRL_ALUSEL_O;
-            EX_FETCH_PCSEL          <= DECODE_EX_PCSEL; // If taken, need to squash Fetch and Decode
             EX_MEM_PC               <= DECODE_EX_PC;
             EX_MEM_ALU_RES          <= ALU_RES_O;
             EX_MEM_RS2DATA          <= DECODE_EX_RS2DATA;
@@ -454,6 +449,29 @@ module pd5 #(
             MEM_WB_RD               <= EX_MEM_RD;
             MEM_WB_WBSEL            <= EX_MEM_WBSEL;
             MEM_WB_REGWREN          <= EX_MEM_REGWREN;
+
+            //Branch and Jump Squashing
+            if (FETCH_PC_SEL_I) begin
+                FETCH_DECODE_PC         <= 'b0;
+                FETCH_DECODE_INSN       <= 'b0;
+                DECODE_EX_PC            <= 'b0;
+                DECODE_EX_OPCODE        <= 'b0;
+                DECODE_EX_FUNCT3        <= 'b0;
+                DECODE_EX_FUNCT7        <= 'b0;
+                DECODE_EX_RS1DATA       <= 'b0;
+                DECODE_EX_RS2DATA       <= 'b0;
+                DECODE_EX_IMMDATA       <= 'b0;
+                DECODE_EX_RD            <= 'b0;
+                DECODE_EX_PCSEL         <= 'b0;
+                DECODE_EX_IMMSEL        <= 'b0;
+                DECODE_EX_REGWREN       <= 'b0;
+                DECODE_EX_RS1SEL        <= 'b0;
+                DECODE_EX_RS2SEL        <= 'b0;
+                DECODE_EX_MEMREN        <= 'b0;
+                DECODE_EX_MEMWREN       <= 'b0;
+                DECODE_EX_WBSEL         <= 'b0;
+                DECODE_EX_ALUSEL        <= 'b0;
+            end
         end
     end
 
