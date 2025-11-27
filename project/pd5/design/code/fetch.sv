@@ -22,6 +22,7 @@ module fetch #(
 	input logic rst,
     input logic pc_sel_i,
     input logic [AWIDTH - 1:0] newpc_i,
+    input logic stall_i,
 	// outputs
 	output logic [AWIDTH - 1:0] pc_o,
     output logic [DWIDTH - 1:0] insn_o
@@ -33,7 +34,9 @@ module fetch #(
         if (rst) begin
             pc <= BASEADDR;
         end else begin
-            if(pc_sel_i) begin
+            if (stall_i) begin
+                pc <= pc;
+            end else if (pc_sel_i) begin
                 pc <= newpc_i;
             end else begin
                 pc <= pc + 32'd4;

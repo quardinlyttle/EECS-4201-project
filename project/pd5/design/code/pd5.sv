@@ -39,6 +39,8 @@ module pd5 #(
     // Fetch Outputs
     logic [AWIDTH-1:0]  FETCH_PC_O;
     logic [DWIDTH-1:0]  FETCH_INSN_O;
+    // Fetch Inputs
+    logic               FETCH_STALL_I;
     logic               FETCH_PC_SEL_I;
     logic [AWIDTH-1:0]  FETCH_NEWPC_I;
 
@@ -121,6 +123,8 @@ module pd5 #(
     logic [DWIDTH-1:0]  WB_DATA_O;
     logic [AWIDTH-1:0]  WB_NEXT_PC_O;
 
+    // ======= STALL SIGNALS =======
+    logic               STALL_EN;
     // ================================================
     // ============== PIPELINE REGISTERS ==============
     // ================================================
@@ -185,12 +189,14 @@ module pd5 #(
         .rst        (reset),
         .pc_sel_i   (FETCH_PC_SEL_I),
         .newpc_i    (FETCH_NEWPC_I),
+        .stall_i   (FETCH_STALL_I),
         .pc_o       (FETCH_PC_O),
         .insn_o     (FETCH_INSN_O)
     );
     assign FETCH_INSN_O     = MEM_INSN_O;
     assign FETCH_PC_SEL_I   = DECODE_EX_PCSEL || ALU_BRTAKEN_O;
     assign FETCH_NEWPC_I    = ALU_RES_O;
+    assign FETCH_STALL_I    = STALL_EN;
 
     // ****** DECODE STAGE START ******
 
@@ -471,7 +477,42 @@ module pd5 #(
                 DECODE_EX_WBSEL         <= 'b0;
                 DECODE_EX_ALUSEL        <= 'b0;
             end
+
+            //Stalls (All from Decode)
+            if (STALL_EN) begin
+                FETCH_DECODE_PC         <=  FETCH_DECODE_PC;
+                FETCH_DECODE_INSN       <=  FETCH_DECODE_INSN;
+                DECODE_EX_PC            <= 'b0;
+                DECODE_EX_OPCODE        <= 'b0;
+                DECODE_EX_FUNCT3        <= 'b0;
+                DECODE_EX_FUNCT7        <= 'b0;
+                DECODE_EX_RS1DATA       <= 'b0;
+                DECODE_EX_RS2DATA       <= 'b0;
+                DECODE_EX_IMMDATA       <= 'b0;
+                DECODE_EX_RD            <= 'b0;
+                DECODE_EX_PCSEL         <= 'b0;
+                DECODE_EX_IMMSEL        <= 'b0;
+                DECODE_EX_REGWREN       <= 'b0;
+                DECODE_EX_RS1SEL        <= 'b0;
+                DECODE_EX_RS2SEL        <= 'b0;
+                DECODE_EX_MEMREN        <= 'b0;
+                DECODE_EX_MEMWREN       <= 'b0;
+                DECODE_EX_WBSEL         <= 'b0;
+                DECODE_EX_ALUSEL        <= 'b0;
+            end
+
         end
+    end
+
+    // ================================================
+    // =============== Stall CONTROL ===============
+    // ================================================
+    always_comb begin
+        //Load Use Stall
+        assign STALL_EN = ((DECODE_EX_OPCODE == LOAD) &&
+                            (DECODE_OPCODE_O != STORE) &&
+                            (DECODE_RS1_O == DECODE_EX_RD)
+                            ) ? 1'b1 : 1'b0;
     end
 
     // program termination logic
