@@ -298,7 +298,7 @@ module pd5 #(
     // RS1 and RS2 Bypass MUX
     always_comb begin
         if (MX_RS1_EN) begin
-            RS1_MUX = 'b0; // COMPLETE THIS LATER
+            RS1_MUX = EX_MEM_ALU_RES;
         end else if (WX_RS1_EN) begin
             RS1_MUX = WB_DATA_O;
         end else begin
@@ -306,7 +306,7 @@ module pd5 #(
         end
 
         if (MX_RS2_EN) begin
-            RS2_MUX = 'b0; // COMPLETE THIS LATER
+            RS2_MUX = EX_MEM_ALU_RES;
         end else if (WX_RS2_EN) begin
             RS2_MUX = WB_DATA_O;
         end else begin
@@ -565,6 +565,20 @@ module pd5 #(
     assign WX_RS2_EN =  MEM_WB_REGWREN &&
                         (MEM_WB_RD == DECODE_EX_RS2);
 
+    // ================================================
+    // ================= MX Bypassing =================
+    // ================================================
+    // Case 1: RS1
+    assign MX_RS1_EN =  EX_MEM_REGWREN &&
+                        (EX_MEM_RD == DECODE_EX_RS1);
+                        /*
+                         * Could add extra condition: && (EX_MEM_OPCODE != LOAD);
+                         * But this is a Load-Use case where the Decode-Ex pipelines
+                         * are stalled so the value will never be used in this case.
+                         */
+    // Case 2: RS2
+    assign MX_RS2_EN =  EX_MEM_REGWREN &&
+                        (EX_MEM_RD == DECODE_EX_RS2);
 
     // program termination logic
     reg is_program = 0;
