@@ -552,7 +552,8 @@ module pd5 #(
     //Load-Use Stall
     assign STALL_EN =   (DECODE_EX_OPCODE == LOAD) &&
                         (DECODE_OPCODE_O != STORE) &&
-                        (DECODE_RS1_O == DECODE_EX_RD);
+                        ((DECODE_RS1_O == DECODE_EX_RD) ||
+                        (DECODE_RS2_O == DECODE_EX_RD));
 
     // ================================================
     // ================= WX Bypassing =================
