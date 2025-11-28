@@ -295,35 +295,6 @@ module pd5 #(
 
     // ****** EXECUTE STAGE START ******
 
-    // =========== BRANCH COMPARATOR MODULE INSTANTIATION ===========
-    branch_control branching(
-        .opcode_i(BC_OPCODE_I),
-        .funct3_i(BC_FUNCT3_I),
-        .rs1_i(BC_RS1_I),
-        .rs2_i(BC_RS2_I),
-        .breq_o(BC_BREQ_O),
-        .brlt_o(BC_BRLT_O)
-    );
-    // BC Input Assignments
-    assign BC_OPCODE_I      = DECODE_EX_OPCODE;
-    assign BC_FUNCT3_I      = DECODE_EX_FUNCT3;
-    assign BC_RS1_I         = DECODE_EX_RS1DATA;
-    assign BC_RS2_I         = DECODE_EX_RS2DATA;
-
-    // Branch Taken Computation
-    always_comb begin: BRANCHER
-        if(DECODE_EX_OPCODE==BRANCH) begin
-            case(DECODE_EX_FUNCT3)
-            'h0: ALU_BRTAKEN_O = BC_BREQ_O;
-            'h1: ALU_BRTAKEN_O = ~BC_BREQ_O;
-            'h4, 'h6: ALU_BRTAKEN_O = BC_BRLT_O;
-            'h5, 'h7: ALU_BRTAKEN_O = ~BC_BRLT_O;
-            default: ALU_BRTAKEN_O = 'd0;
-            endcase
-        end
-        else ALU_BRTAKEN_O = 'd0;
-    end
-
     // RS1 and RS2 Bypass MUX
     always_comb begin
         if (MX_RS1_EN) begin
@@ -341,6 +312,35 @@ module pd5 #(
         end else begin
             RS2_MUX = DECODE_EX_RS2DATA;
         end
+    end
+
+    // =========== BRANCH COMPARATOR MODULE INSTANTIATION ===========
+    branch_control branching(
+        .opcode_i(BC_OPCODE_I),
+        .funct3_i(BC_FUNCT3_I),
+        .rs1_i(BC_RS1_I),
+        .rs2_i(BC_RS2_I),
+        .breq_o(BC_BREQ_O),
+        .brlt_o(BC_BRLT_O)
+    );
+    // BC Input Assignments
+    assign BC_OPCODE_I      = DECODE_EX_OPCODE;
+    assign BC_FUNCT3_I      = DECODE_EX_FUNCT3;
+    assign BC_RS1_I         = RS1_MUX;
+    assign BC_RS2_I         = RS2_MUX;
+
+    // Branch Taken Computation
+    always_comb begin: BRANCHER
+        if(DECODE_EX_OPCODE==BRANCH) begin
+            case(DECODE_EX_FUNCT3)
+            'h0: ALU_BRTAKEN_O = BC_BREQ_O;
+            'h1: ALU_BRTAKEN_O = ~BC_BREQ_O;
+            'h4, 'h6: ALU_BRTAKEN_O = BC_BRLT_O;
+            'h5, 'h7: ALU_BRTAKEN_O = ~BC_BRLT_O;
+            default: ALU_BRTAKEN_O = 'd0;
+            endcase
+        end
+        else ALU_BRTAKEN_O = 'd0;
     end
 
     // =========== EXECUTE MODULE INSTANTIATION ===========
