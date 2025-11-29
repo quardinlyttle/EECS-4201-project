@@ -573,9 +573,11 @@ module pd5 #(
     // ================================================
     // Case 1: RS1
     assign WX_RS1_EN =  MEM_WB_REGWREN &&
+                        MEM_WB_RD != 'b0 &&
                         (MEM_WB_RD == DECODE_EX_RS1);
     // Case 2: RS2
     assign WX_RS2_EN =  MEM_WB_REGWREN &&
+                        MEM_WB_RD != 'b0 &&
                         (MEM_WB_RD == DECODE_EX_RS2);
 
     // ================================================
@@ -583,6 +585,7 @@ module pd5 #(
     // ================================================
     // Case 1: RS1
     assign MX_RS1_EN =  EX_MEM_REGWREN &&
+                        EX_MEM_RD != 'b0 &&
                         (EX_MEM_RD == DECODE_EX_RS1);
                         /*
                          * Could add extra condition: && (EX_MEM_OPCODE != LOAD);
@@ -591,12 +594,14 @@ module pd5 #(
                          */
     // Case 2: RS2
     assign MX_RS2_EN =  EX_MEM_REGWREN &&
+                        EX_MEM_RD != 'b0 &&
                         (EX_MEM_RD == DECODE_EX_RS2);
 
     // ================================================
     // ================= WM Bypassing =================
     // ================================================
     assign WM_RS2_EN =  MEM_WB_REGWREN &&
+                        MEM_WB_RD != 'b0 &&
                         (MEM_WB_RD == EX_MEM_RS2);
 
     // program termination logic
