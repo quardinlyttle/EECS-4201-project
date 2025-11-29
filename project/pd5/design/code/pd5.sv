@@ -184,6 +184,7 @@ module pd5 #(
     logic                   EX_MEM_MEMWREN;
     logic [WBSEL_SIZE-1:0]  EX_MEM_WBSEL;
     logic                   EX_MEM_REGWREN;
+    logic                   EX_MEM_MEMREN;
 
     // ======= MEMORY-WRITEBACK PIPELINE REGISTERS =======
     logic [AWIDTH-1:0]      MEM_WB_PC;
@@ -398,7 +399,7 @@ module pd5 #(
     // Assign Instruction Memory Inputs
     assign MEM_ADDR_I       = EX_MEM_ALU_RES;
     assign MEM_DATA_I       = MEM_RS2_MUX;
-    assign MEM_READ_EN_I    = 1'b1;
+    assign MEM_READ_EN_I    = EX_MEM_MEMREN;
     assign MEM_WRITE_EN_I   = EX_MEM_MEMWREN;
     assign MEM_FUNCT3_I     = EX_MEM_FUNCT3;
     assign MEM_OPCODE_I     = EX_MEM_OPCODE;
@@ -454,9 +455,11 @@ module pd5 #(
             EX_MEM_RS2DATA          <= 'b0;
             EX_MEM_FUNCT3           <= 'b0;
             EX_MEM_OPCODE           <= 'b0;
+            EX_MEM_RD               <= 'b0;
             EX_MEM_MEMWREN          <= 'b0;
             EX_MEM_WBSEL            <= 'b0;
             EX_MEM_REGWREN          <= 'b0;
+            EX_MEM_MEMREN           <= 'b0;
             MEM_WB_PC               <= 'b0;
             MEM_WB_ALU_RES          <= 'b0;
             MEM_WB_MEM_DATA         <= 'b0;
@@ -495,6 +498,7 @@ module pd5 #(
             EX_MEM_MEMWREN          <= DECODE_EX_MEMWREN;
             EX_MEM_WBSEL            <= DECODE_EX_WBSEL;
             EX_MEM_REGWREN          <= DECODE_EX_REGWREN;
+            EX_MEM_MEMREN           <= DECODE_EX_MEMREN;
             MEM_WB_PC               <= EX_MEM_PC;
             MEM_WB_ALU_RES          <= EX_MEM_ALU_RES;
             MEM_WB_MEM_DATA         <= MEM_DATA_O;
