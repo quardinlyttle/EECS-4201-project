@@ -93,9 +93,12 @@ module pd5 #(
     logic [DWIDTH-1:0]  RF_RS1DATA_O;
     logic [DWIDTH-1:0]  RF_RS2DATA_O;
 
-    // ======= RS1/2 MUX SIGNALS =======
-    logic [DWIDTH-1:0]  RS1_MUX;
-    logic [DWIDTH-1:0]  RS2_MUX;
+    // ======= EXECUTE STAGE RS1/2 MUX SIGNALS =======
+    logic [DWIDTH-1:0]  EX_RS1_MUX;
+    logic [DWIDTH-1:0]  EX_RS2_MUX;
+
+    // ======= MEMORY STAGE RS2 MUX SIGNALS =======
+    logic [DWIDTH-1:0]  MEM_RS2_MUX;
 
     // ======= ALU SIGNALS =======
     // ALU Inputs
@@ -135,7 +138,6 @@ module pd5 #(
     logic               MX_RS2_EN;
     logic               WX_RS1_EN;
     logic               WX_RS2_EN;
-    logic               WM_RS1_EN;
     logic               WM_RS2_EN;
 
     // ================================================
@@ -172,6 +174,7 @@ module pd5 #(
     // ======= EXECUTE-MEMORY PIPELINE REGISTERS =======
     logic [AWIDTH-1:0]      EX_MEM_PC;
     logic [DWIDTH-1:0]      EX_MEM_ALU_RES;
+    logic [RADDR_SIZE-1:0]  EX_MEM_RS2;
     logic [DWIDTH-1:0]      EX_MEM_RS2DATA;
     logic [FUNCT3_SIZE-1:0] EX_MEM_FUNCT3;
     logic [OPCODE_SIZE-1:0] EX_MEM_OPCODE;
@@ -295,22 +298,22 @@ module pd5 #(
 
     // ****** EXECUTE STAGE START ******
 
-    // RS1 and RS2 Bypass MUX
+    // Execute Stage RS1 and RS2 Bypass MUX
     always_comb begin
         if (MX_RS1_EN) begin
-            RS1_MUX = EX_MEM_ALU_RES;
+            EX_RS1_MUX = EX_MEM_ALU_RES;
         end else if (WX_RS1_EN) begin
-            RS1_MUX = WB_DATA_O;
+            EX_RS1_MUX = WB_DATA_O;
         end else begin
-            RS1_MUX = DECODE_EX_RS1DATA;
+            EX_RS1_MUX = DECODE_EX_RS1DATA;
         end
 
         if (MX_RS2_EN) begin
-            RS2_MUX = EX_MEM_ALU_RES;
+            EX_RS2_MUX = EX_MEM_ALU_RES;
         end else if (WX_RS2_EN) begin
-            RS2_MUX = WB_DATA_O;
+            EX_RS2_MUX = WB_DATA_O;
         end else begin
-            RS2_MUX = DECODE_EX_RS2DATA;
+            EX_RS2_MUX = DECODE_EX_RS2DATA;
         end
     end
 
@@ -326,8 +329,8 @@ module pd5 #(
     // BC Input Assignments
     assign BC_OPCODE_I      = DECODE_EX_OPCODE;
     assign BC_FUNCT3_I      = DECODE_EX_FUNCT3;
-    assign BC_RS1_I         = RS1_MUX;
-    assign BC_RS2_I         = RS2_MUX;
+    assign BC_RS1_I         = EX_RS1_MUX;
+    assign BC_RS2_I         = EX_RS2_MUX;
 
     // Branch Taken Computation
     always_comb begin: BRANCHER
@@ -361,11 +364,14 @@ module pd5 #(
     assign ALU_PC_I     = DECODE_EX_PC;
     assign ALU_FUNCT3_I = DECODE_EX_FUNCT3;
     assign ALU_FUNCT7_I = DECODE_EX_FUNCT7;
-    assign ALU_RS1_I    = RS1_MUX;
-    assign ALU_RS2_I    = DECODE_EX_IMMSEL ? DECODE_EX_IMMDATA : RS2_MUX;
+    assign ALU_RS1_I    = EX_RS1_MUX;
+    assign ALU_RS2_I    = DECODE_EX_IMMSEL ? DECODE_EX_IMMDATA : EX_RS2_MUX;
     assign ALU_SEL_I    = DECODE_EX_ALUSEL;
 
     // ****** MEMORY STAGE START ******
+
+    // Memory Stage RS2 Bypass MUX
+    assign MEM_RS2_MUX = WM_RS2_EN ? WB_DATA_O : EX_MEM_RS2DATA;
 
     // =========== INSTRUCTION MEMORY MODULE INSTANTIATION ===========
     memory #(
@@ -391,7 +397,7 @@ module pd5 #(
     );
     // Assign Instruction Memory Inputs
     assign MEM_ADDR_I       = EX_MEM_ALU_RES;
-    assign MEM_DATA_I       = EX_MEM_RS2DATA;
+    assign MEM_DATA_I       = MEM_RS2_MUX;
     assign MEM_READ_EN_I    = 1'b1;
     assign MEM_WRITE_EN_I   = EX_MEM_MEMWREN;
     assign MEM_FUNCT3_I     = EX_MEM_FUNCT3;
@@ -444,6 +450,7 @@ module pd5 #(
             DECODE_EX_ALUSEL        <= 'b0;
             EX_MEM_PC               <= 'b0;
             EX_MEM_ALU_RES          <= 'b0;
+            EX_MEM_RS2              <= 'b0;
             EX_MEM_RS2DATA          <= 'b0;
             EX_MEM_FUNCT3           <= 'b0;
             EX_MEM_OPCODE           <= 'b0;
@@ -453,6 +460,7 @@ module pd5 #(
             MEM_WB_PC               <= 'b0;
             MEM_WB_ALU_RES          <= 'b0;
             MEM_WB_MEM_DATA         <= 'b0;
+            MEM_WB_RD               <= 'b0;
             MEM_WB_WBSEL            <= 'b0;
             MEM_WB_REGWREN          <= 'b0;
         end else begin
@@ -479,6 +487,7 @@ module pd5 #(
             DECODE_EX_ALUSEL        <= CTRL_ALUSEL_O;
             EX_MEM_PC               <= DECODE_EX_PC;
             EX_MEM_ALU_RES          <= ALU_RES_O;
+            EX_MEM_RS2              <= DECODE_EX_RS2;
             EX_MEM_RS2DATA          <= DECODE_EX_RS2DATA;
             EX_MEM_FUNCT3           <= DECODE_EX_FUNCT3;
             EX_MEM_OPCODE           <= DECODE_EX_OPCODE;
@@ -583,7 +592,8 @@ module pd5 #(
     // ================================================
     // ================= WM Bypassing =================
     // ================================================
-    
+    assign WM_RS2_EN =  MEM_WB_REGWREN &&
+                        (MEM_WB_RD == EX_MEM_RS2);
 
     // program termination logic
     reg is_program = 0;
