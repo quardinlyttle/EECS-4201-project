@@ -27,7 +27,8 @@
 `define PROBE_M_PC                      EX_MEM_PC
 `define PROBE_M_ADDRESS                 MEM_ADDR_I
 `define PROBE_M_SIZE_ENCODED            MEM_FUNCT3_I[1:0]
-`define PROBE_M_DATA                    MEM_DATA_O
+//`define PROBE_M_DATA                    MEM_DATA_O
+`define PROBE_M_DATA                    MEM_DATA_I
 
 `define PROBE_W_PC                      WB_PC_I
 `define PROBE_W_ENABLE                  MEM_WB_REGWREN
