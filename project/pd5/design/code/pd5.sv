@@ -93,6 +93,10 @@ module pd5 #(
     logic [DWIDTH-1:0]  RF_RS1DATA_O;
     logic [DWIDTH-1:0]  RF_RS2DATA_O;
 
+    // ======= RS1/2 MUX SIGNALS =======
+    logic [DWIDTH-1:0]  RS1_MUX;
+    logic [DWIDTH-1:0]  RS2_MUX;
+
     // ======= ALU SIGNALS =======
     // ALU Inputs
     logic [AWIDTH-1:0]  ALU_PC_I;
@@ -125,6 +129,15 @@ module pd5 #(
 
     // ======= STALL SIGNALS =======
     logic               STALL_EN;
+
+    // ======= BYPASS SIGNALS =======
+    logic               MX_RS1_EN;
+    logic               MX_RS2_EN;
+    logic               WX_RS1_EN;
+    logic               WX_RS2_EN;
+    logic               WM_RS1_EN;
+    logic               WM_RS2_EN;
+
     // ================================================
     // ============== PIPELINE REGISTERS ==============
     // ================================================
@@ -140,6 +153,8 @@ module pd5 #(
     logic [FUNCT7_SIZE-1:0] DECODE_EX_FUNCT7;
     logic [DWIDTH-1:0]      DECODE_EX_RS1DATA;
     logic [DWIDTH-1:0]      DECODE_EX_RS2DATA;
+    logic [RADDR_SIZE-1:0]  DECODE_EX_RS1;
+    logic [RADDR_SIZE-1:0]  DECODE_EX_RS2;
     logic [DWIDTH-1:0]      DECODE_EX_IMMDATA;
     logic [RADDR_SIZE-1:0]  DECODE_EX_RD;
 
@@ -280,6 +295,25 @@ module pd5 #(
 
     // ****** EXECUTE STAGE START ******
 
+    // RS1 and RS2 Bypass MUX
+    always_comb begin
+        if (MX_RS1_EN) begin
+            RS1_MUX = EX_MEM_ALU_RES;
+        end else if (WX_RS1_EN) begin
+            RS1_MUX = WB_DATA_O;
+        end else begin
+            RS1_MUX = DECODE_EX_RS1DATA;
+        end
+
+        if (MX_RS2_EN) begin
+            RS2_MUX = EX_MEM_ALU_RES;
+        end else if (WX_RS2_EN) begin
+            RS2_MUX = WB_DATA_O;
+        end else begin
+            RS2_MUX = DECODE_EX_RS2DATA;
+        end
+    end
+
     // =========== BRANCH COMPARATOR MODULE INSTANTIATION ===========
     branch_control branching(
         .opcode_i(BC_OPCODE_I),
@@ -292,8 +326,8 @@ module pd5 #(
     // BC Input Assignments
     assign BC_OPCODE_I      = DECODE_EX_OPCODE;
     assign BC_FUNCT3_I      = DECODE_EX_FUNCT3;
-    assign BC_RS1_I         = DECODE_EX_RS1DATA;
-    assign BC_RS2_I         = DECODE_EX_RS2DATA;
+    assign BC_RS1_I         = RS1_MUX;
+    assign BC_RS2_I         = RS2_MUX;
 
     // Branch Taken Computation
     always_comb begin: BRANCHER
@@ -327,8 +361,8 @@ module pd5 #(
     assign ALU_PC_I     = DECODE_EX_PC;
     assign ALU_FUNCT3_I = DECODE_EX_FUNCT3;
     assign ALU_FUNCT7_I = DECODE_EX_FUNCT7;
-    assign ALU_RS1_I    = DECODE_EX_RS1DATA;
-    assign ALU_RS2_I    = (DECODE_EX_IMMSEL)? DECODE_EX_IMMDATA : DECODE_EX_RS2DATA;
+    assign ALU_RS1_I    = RS1_MUX;
+    assign ALU_RS2_I    = DECODE_EX_IMMSEL ? DECODE_EX_IMMDATA : RS2_MUX;
     assign ALU_SEL_I    = DECODE_EX_ALUSEL;
 
     // ****** MEMORY STAGE START ******
@@ -395,6 +429,8 @@ module pd5 #(
             DECODE_EX_FUNCT7        <= 'b0;
             DECODE_EX_RS1DATA       <= 'b0;
             DECODE_EX_RS2DATA       <= 'b0;
+            DECODE_EX_RS1           <= 'b0;
+            DECODE_EX_RS2           <= 'b0;
             DECODE_EX_IMMDATA       <= 'b0;
             DECODE_EX_RD            <= 'b0;
             DECODE_EX_PCSEL         <= 'b0;
@@ -428,6 +464,8 @@ module pd5 #(
             DECODE_EX_FUNCT7        <= DECODE_FUNCT7_O;
             DECODE_EX_RS1DATA       <= RF_RS1DATA_O;
             DECODE_EX_RS2DATA       <= RF_RS2DATA_O;
+            DECODE_EX_RS1           <= DECODE_RS1_O;
+            DECODE_EX_RS2           <= DECODE_RS2_O;
             DECODE_EX_IMMDATA       <= DECODE_IMM_O;
             DECODE_EX_RD            <= DECODE_RD_O;
             DECODE_EX_PCSEL         <= CTRL_PCSEL_O;
@@ -465,6 +503,8 @@ module pd5 #(
                 DECODE_EX_FUNCT7        <= 'b0;
                 DECODE_EX_RS1DATA       <= 'b0;
                 DECODE_EX_RS2DATA       <= 'b0;
+                DECODE_EX_RS1           <= 'b0;
+                DECODE_EX_RS2           <= 'b0;
                 DECODE_EX_IMMDATA       <= 'b0;
                 DECODE_EX_RD            <= 'b0;
                 DECODE_EX_PCSEL         <= 'b0;
@@ -488,6 +528,8 @@ module pd5 #(
                 DECODE_EX_FUNCT7        <= 'b0;
                 DECODE_EX_RS1DATA       <= 'b0;
                 DECODE_EX_RS2DATA       <= 'b0;
+                DECODE_EX_RS1           <= 'b0;
+                DECODE_EX_RS2           <= 'b0;
                 DECODE_EX_IMMDATA       <= 'b0;
                 DECODE_EX_RD            <= 'b0;
                 DECODE_EX_PCSEL         <= 'b0;
@@ -505,15 +547,38 @@ module pd5 #(
     end
 
     // ================================================
-    // =============== Stall CONTROL ===============
+    // =============== STALL CONTROL ==================
     // ================================================
-    always_comb begin
-        //Load Use Stall
-        assign STALL_EN = ((DECODE_EX_OPCODE == LOAD) &&
-                            (DECODE_OPCODE_O != STORE) &&
-                            (DECODE_RS1_O == DECODE_EX_RD)
-                            ) ? 1'b1 : 1'b0;
-    end
+    //Load-Use Stall
+    assign STALL_EN =   (DECODE_EX_OPCODE == LOAD) &&
+                        (DECODE_OPCODE_O != STORE) &&
+                        ((DECODE_RS1_O == DECODE_EX_RD) ||
+                        (DECODE_RS2_O == DECODE_EX_RD));
+
+    // ================================================
+    // ================= WX Bypassing =================
+    // ================================================
+    // Case 1: RS1
+    assign WX_RS1_EN =  MEM_WB_REGWREN &&
+                        (MEM_WB_RD == DECODE_EX_RS1);
+    // Case 2: RS2
+    assign WX_RS2_EN =  MEM_WB_REGWREN &&
+                        (MEM_WB_RD == DECODE_EX_RS2);
+
+    // ================================================
+    // ================= MX Bypassing =================
+    // ================================================
+    // Case 1: RS1
+    assign MX_RS1_EN =  EX_MEM_REGWREN &&
+                        (EX_MEM_RD == DECODE_EX_RS1);
+                        /*
+                         * Could add extra condition: && (EX_MEM_OPCODE != LOAD);
+                         * But this is a Load-Use case where the Decode-Ex pipelines
+                         * are stalled so the value will never be used in this case.
+                         */
+    // Case 2: RS2
+    assign MX_RS2_EN =  EX_MEM_REGWREN &&
+                        (EX_MEM_RD == DECODE_EX_RS2);
 
     // program termination logic
     reg is_program = 0;
