@@ -580,6 +580,11 @@ module pd5 #(
     assign MX_RS2_EN =  EX_MEM_REGWREN &&
                         (EX_MEM_RD == DECODE_EX_RS2);
 
+    // ================================================
+    // ================= WM Bypassing =================
+    // ================================================
+    
+
     // program termination logic
     reg is_program = 0;
     always_ff @(posedge clk) begin
