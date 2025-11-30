@@ -301,7 +301,9 @@ module pd5 #(
 
     // ****** EXECUTE STAGE START ******
 
-    // Execute Stage RS1 and RS2 Bypass MUX
+    /* Execute Stage RS1 and RS2 Bypass MUX
+     * MX bypass takes priority over WX bypass
+     */
     always_comb begin
         if (MX_RS1_EN) begin
             EX_RS1_MUX = EX_MEM_ALU_RES;
