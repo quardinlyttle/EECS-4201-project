@@ -132,6 +132,8 @@ module pd5 #(
 
     // ======= STALL SIGNALS =======
     logic               STALL_EN;
+    logic               RS1_CONFLICT;
+    logic               RS2_CONFLICT;
 
     // ======= BYPASS SIGNALS =======
     logic               MX_RS1_EN;
@@ -208,7 +210,7 @@ module pd5 #(
         .rst        (reset),
         .pc_sel_i   (FETCH_PC_SEL_I),
         .newpc_i    (FETCH_NEWPC_I),
-        .stall_i   (FETCH_STALL_I),
+        .stall_i    (FETCH_STALL_I),
         .pc_o       (FETCH_PC_O),
         .insn_o     (FETCH_INSN_O)
     );
@@ -506,7 +508,7 @@ module pd5 #(
             MEM_WB_WBSEL            <= EX_MEM_WBSEL;
             MEM_WB_REGWREN          <= EX_MEM_REGWREN;
 
-            //Branch and Jump Squashing
+            // 1. Check for Branch/Jump Squash (Highest Priority - flush everything)
             if (FETCH_PC_SEL_I) begin
                 FETCH_DECODE_PC         <= 'b0;
                 FETCH_DECODE_INSN       <= 'b0;
@@ -530,9 +532,8 @@ module pd5 #(
                 DECODE_EX_WBSEL         <= 'b0;
                 DECODE_EX_ALUSEL        <= 'b0;
             end
-
-            //Stalls (All from Decode)
-            if (STALL_EN) begin
+            // 2. Check for Stall (Freeze PC/ID, Flush EX)
+            else if (STALL_EN) begin
                 FETCH_DECODE_PC         <=  FETCH_DECODE_PC;
                 FETCH_DECODE_INSN       <=  FETCH_DECODE_INSN;
                 DECODE_EX_PC            <= 'b0;
@@ -555,18 +556,20 @@ module pd5 #(
                 DECODE_EX_WBSEL         <= 'b0;
                 DECODE_EX_ALUSEL        <= 'b0;
             end
-
         end
     end
 
     // ================================================
     // =============== STALL CONTROL ==================
     // ================================================
+    assign RS1_CONFLICT = (DECODE_EX_RD == DECODE_RS1_O) && (DECODE_RS1_O != 0);
+    assign RS2_CONFLICT = (DECODE_EX_RD == DECODE_RS2_O) && (DECODE_RS2_O != 0);
     //Load-Use Stall
     assign STALL_EN =   (DECODE_EX_OPCODE == LOAD) &&
-                        (DECODE_OPCODE_O != STORE) &&
-                        ((DECODE_RS1_O == DECODE_EX_RD) ||
-                        (DECODE_RS2_O == DECODE_EX_RD));
+                        // Stall always required on RS1 Conflict as execute needs value
+                        (RS1_CONFLICT ||
+                        // Stall on RS2 only if not a Store. If store, can do WM forwarding
+                        (RS2_CONFLICT && DECODE_OPCODE_O != STORE));
 
     // ================================================
     // ================= WX Bypassing =================
